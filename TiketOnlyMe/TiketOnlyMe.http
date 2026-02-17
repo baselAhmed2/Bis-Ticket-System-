@@ -1,0 +1,6 @@
+@TiketOnlyMe_HostAddress = http://localhost:5191
+
+GET {{TiketOnlyMe_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
