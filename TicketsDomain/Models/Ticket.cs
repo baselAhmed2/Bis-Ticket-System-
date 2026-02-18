@@ -28,6 +28,9 @@ namespace TicketsDomain.Models
         public string SubjectId { get; set; }
         public Subject Subject { get; set; }
 
+        public int Level { get; set; }    
+        public int Term { get; set; }
+
         public ICollection<Message> Messages { get; set; }
     }
 }

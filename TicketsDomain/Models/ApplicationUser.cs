@@ -10,7 +10,7 @@ namespace TicketsDomain.Models
     public class ApplicationUser : IdentityUser
     {
         public string Name { get; set; }
-        public int? Level { get; set; }          // للطالب بس
+        
 
         // Navigation
         public ICollection<DoctorSubject> DoctorSubjects { get; set; }

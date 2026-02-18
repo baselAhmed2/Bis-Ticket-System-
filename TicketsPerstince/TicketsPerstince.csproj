@@ -15,4 +15,8 @@
     <ProjectReference Include="..\TicketsServies\TicketsServies.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Data\DataSeeding\Json\" />
+  </ItemGroup>
+
 </Project>

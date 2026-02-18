@@ -4,9 +4,10 @@ namespace TicketsDomain.Models
 {
     public class Subject
     {
-        public string Id { get; set; }      // "BIS123" / "HU12"
+        public string Id { get; set; }
         public string Name { get; set; }
-        public int Level { get; set; }      // المادة دي في سنة كام
+        public int Level { get; set; }
+        public int Term { get; set; }
 
         // Navigation
         public ICollection<DoctorSubject> DoctorSubjects { get; set; }

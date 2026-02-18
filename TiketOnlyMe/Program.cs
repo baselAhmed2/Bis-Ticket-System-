@@ -2,13 +2,15 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using TicketsDomain.Models;
+using TicketsPerstince.Data.DataSeeding;
+using TiketApp.Api.Extensions;
 using TicketsPerstince.Data.DbContexts;
 
 namespace TiketOnlyMe
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -17,20 +19,26 @@ namespace TiketOnlyMe
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            //Database
-            builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(
-                    builder.Configuration.GetConnectionString("DefaultConnection")));
-
-            // Identity
-            builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultTokenProviders();
+            // ? ??????? Extension Methods
+            builder.Services.AddDatabaseServices(builder.Configuration);
+            builder.Services.AddIdentityServices();
+            builder.Services.AddRepositoryServices();
+            builder.Services.AddDataSeeding();
+            builder.Services.AddApplicationServices();
 
             var app = builder.Build();
 
+            // Database Seeding
+            using (var scope = app.Services.CreateScope())
+            {
+                var initializer = scope.ServiceProvider
+                    .GetRequiredService<IDataInitializer>();
+
+                await initializer.InitializeAsync();
+            }
+
             // Swagger
-            if (app.Environment.IsDevelopment())
+            if (app.Environment.IsDevelopment())    
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
@@ -43,7 +51,7 @@ namespace TiketOnlyMe
 
             app.MapControllers();
 
-            app.Run();
+            await app.RunAsync();
         }
     }
 }

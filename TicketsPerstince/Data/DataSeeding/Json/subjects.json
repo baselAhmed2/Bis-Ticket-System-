@@ -1,0 +1,149 @@
+[
+  {
+    "id": "BIS101",
+    "name": "Mathematics 1",
+    "level": 1,
+    "term": 1
+  },
+  {
+    "id": "BIS102",
+    "name": "Physics 1",
+    "level": 1,
+    "term": 1
+  },
+  {
+    "id": "BIS103",
+    "name": "Programming 1",
+    "level": 1,
+    "term": 1
+  },
+  {
+    "id": "BIS104",
+    "name": "Mathematics 2",
+    "level": 1,
+    "term": 2
+  },
+  {
+    "id": "BIS105",
+    "name": "Physics 2",
+    "level": 1,
+    "term": 2
+  },
+  {
+    "id": "BIS106",
+    "name": "Programming 2",
+    "level": 1,
+    "term": 2
+  },
+
+  {
+    "id": "BIS201",
+    "name": "Data Structures",
+    "level": 2,
+    "term": 1
+  },
+  {
+    "id": "BIS202",
+    "name": "Database 1",
+    "level": 2,
+    "term": 1
+  },
+  {
+    "id": "BIS203",
+    "name": "Networks 1",
+    "level": 2,
+    "term": 1
+  },
+  {
+    "id": "BIS204",
+    "name": "Algorithms",
+    "level": 2,
+    "term": 2
+  },
+  {
+    "id": "BIS205",
+    "name": "Database 2",
+    "level": 2,
+    "term": 2
+  },
+  {
+    "id": "BIS206",
+    "name": "Networks 2",
+    "level": 2,
+    "term": 2
+  },
+
+  {
+    "id": "BIS301",
+    "name": "Software Engineering",
+    "level": 3,
+    "term": 1
+  },
+  {
+    "id": "BIS302",
+    "name": "Web Development",
+    "level": 3,
+    "term": 1
+  },
+  {
+    "id": "BIS303",
+    "name": "AI Introduction",
+    "level": 3,
+    "term": 1
+  },
+  {
+    "id": "BIS304",
+    "name": "Mobile Development",
+    "level": 3,
+    "term": 2
+  },
+  {
+    "id": "BIS305",
+    "name": "Cloud Computing",
+    "level": 3,
+    "term": 2
+  },
+  {
+    "id": "BIS306",
+    "name": "Cyber Security",
+    "level": 3,
+    "term": 2
+  },
+
+  {
+    "id": "BIS401",
+    "name": "Graduation Project 1",
+    "level": 4,
+    "term": 1
+  },
+  {
+    "id": "BIS402",
+    "name": "Machine Learning",
+    "level": 4,
+    "term": 1
+  },
+  {
+    "id": "BIS403",
+    "name": "Big Data",
+    "level": 4,
+    "term": 1
+  },
+  {
+    "id": "BIS404",
+    "name": "Graduation Project 2",
+    "level": 4,
+    "term": 2
+  },
+  {
+    "id": "BIS405",
+    "name": "Deep Learning",
+    "level": 4,
+    "term": 2
+  },
+  {
+    "id": "BIS406",
+    "name": "IoT",
+    "level": 4,
+    "term": 2
+  }
+]

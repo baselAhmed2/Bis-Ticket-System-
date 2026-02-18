@@ -1,0 +1,74 @@
+[
+  {
+    "id": "D001",
+    "ssn": "29901011234561",
+    "name": "Dr. Ahmed Ali",
+    "subjects": [ "BIS101", "BIS104" ]
+  },
+  {
+    "id": "D002",
+    "ssn": "29901011234562",
+    "name": "Dr. Mohamed Hassan",
+    "subjects": [ "BIS102", "BIS105" ]
+  },
+  {
+    "id": "D003",
+    "ssn": "29901011234563",
+    "name": "Dr. Sara Omar",
+    "subjects": [ "BIS103", "BIS106" ]
+  },
+  {
+    "id": "D004",
+    "ssn": "29901011234564",
+    "name": "Dr. Khaled Samir",
+    "subjects": [ "BIS201", "BIS204" ]
+  },
+  {
+    "id": "D005",
+    "ssn": "29901011234565",
+    "name": "Dr. Mona Adel",
+    "subjects": [ "BIS202", "BIS205" ]
+  },
+  {
+    "id": "D006",
+    "ssn": "29901011234566",
+    "name": "Dr. Youssef Nader",
+    "subjects": [ "BIS203", "BIS206" ]
+  },
+  {
+    "id": "D007",
+    "ssn": "29901011234567",
+    "name": "Dr. Heba Mahmoud",
+    "subjects": [ "BIS301", "BIS304" ]
+  },
+  {
+    "id": "D008",
+    "ssn": "29901011234568",
+    "name": "Dr. Tamer Fathy",
+    "subjects": [ "BIS302", "BIS305" ]
+  },
+  {
+    "id": "D009",
+    "ssn": "29901011234569",
+    "name": "Dr. Rania Gamal",
+    "subjects": [ "BIS303", "BIS306" ]
+  },
+  {
+    "id": "D010",
+    "ssn": "29901011234570",
+    "name": "Dr. Amr Salah",
+    "subjects": [ "BIS401", "BIS404" ]
+  },
+  {
+    "id": "D011",
+    "ssn": "29901011234571",
+    "name": "Dr. Dina Kamal",
+    "subjects": [ "BIS402", "BIS405" ]
+  },
+  {
+    "id": "D012",
+    "ssn": "29901011234572",
+    "name": "Dr. Wael Ibrahim",
+    "subjects": [ "BIS403", "BIS406" ]
+  }
+]
