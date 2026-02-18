@@ -19,9 +19,10 @@ namespace TiketOnlyMe
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            // ? ??????? Extension Methods
+            // Extension Methods
             builder.Services.AddDatabaseServices(builder.Configuration);
             builder.Services.AddIdentityServices();
+            builder.Services.AddJwtAuthentication(builder.Configuration);
             builder.Services.AddRepositoryServices();
             builder.Services.AddDataSeeding();
             builder.Services.AddApplicationServices();
@@ -38,7 +39,7 @@ namespace TiketOnlyMe
             }
 
             // Swagger
-            if (app.Environment.IsDevelopment())    
+            if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();

@@ -8,7 +8,7 @@ using TicketsShared.Enums;
 
 namespace TicketsDomain.Models
 {
-    public class Ticket: BaseEntity<int>
+    public class Ticket: BaseEntity<string>
     {
       
         public string Title { get; set; }

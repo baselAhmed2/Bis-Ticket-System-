@@ -8,7 +8,7 @@
         public bool IsHighPriority { get; set; } = false;
 
         // Relations
-        public int TicketId { get; set; }
+        public string TicketId { get; set; }
         public Ticket Ticket { get; set; }
 
         public string SenderId { get; set; }

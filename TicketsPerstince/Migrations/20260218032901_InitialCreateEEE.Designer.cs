@@ -12,8 +12,8 @@ using TicketsPerstince.Data.DbContexts;
 namespace TicketsPerstince.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260217181829_DataSeed2")]
-    partial class DataSeed2
+    [Migration("20260218032901_InitialCreateEEE")]
+    partial class InitialCreateEEE
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -264,8 +264,9 @@ namespace TicketsPerstince.Migrations
                     b.Property<DateTime>("SentAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("TicketId")
-                        .HasColumnType("int");
+                    b.Property<string>("TicketId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
 
@@ -300,11 +301,9 @@ namespace TicketsPerstince.Migrations
 
             modelBuilder.Entity("TicketsDomain.Models.Ticket", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<string>("Id")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Body")
                         .IsRequired()

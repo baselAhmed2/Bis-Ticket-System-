@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TicketsPerstince.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialCreateEEE : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -31,7 +31,6 @@ namespace TicketsPerstince.Migrations
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Level = table.Column<int>(type: "int", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -58,7 +57,8 @@ namespace TicketsPerstince.Migrations
                 {
                     Id = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Level = table.Column<int>(type: "int", nullable: false)
+                    Level = table.Column<int>(type: "int", nullable: false),
+                    Term = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -199,8 +199,7 @@ namespace TicketsPerstince.Migrations
                 name: "Tickets",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Id = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Body = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     GroupNumber = table.Column<int>(type: "int", nullable: false),
@@ -209,7 +208,9 @@ namespace TicketsPerstince.Migrations
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     StudentId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     DoctorId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    SubjectId = table.Column<string>(type: "nvarchar(20)", nullable: false)
+                    SubjectId = table.Column<string>(type: "nvarchar(20)", nullable: false),
+                    Level = table.Column<int>(type: "int", nullable: false),
+                    Term = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -243,7 +244,7 @@ namespace TicketsPerstince.Migrations
                     Body = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     SentAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsHighPriority = table.Column<bool>(type: "bit", nullable: false),
-                    TicketId = table.Column<int>(type: "int", nullable: false),
+                    TicketId = table.Column<string>(type: "nvarchar(50)", nullable: false),
                     SenderId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>

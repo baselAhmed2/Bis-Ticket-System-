@@ -16,6 +16,10 @@ namespace TicketsPersistence.Configurations
             // Primary Key
             builder.HasKey(t => t.Id);
 
+            builder.Property(t => t.Id)
+                .HasMaxLength(50)
+                .ValueGeneratedNever();
+
             // Properties
             builder.Property(t => t.Title)
                 .IsRequired()
@@ -25,6 +29,12 @@ namespace TicketsPersistence.Configurations
                 .IsRequired();
 
             builder.Property(t => t.GroupNumber)
+                .IsRequired();
+
+            builder.Property(t => t.Level)
+                .IsRequired();
+
+            builder.Property(t => t.Term)
                 .IsRequired();
 
             builder.Property(t => t.Status)
