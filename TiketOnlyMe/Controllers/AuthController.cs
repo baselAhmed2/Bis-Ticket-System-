@@ -1,30 +1,31 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using TicketsServiesAbstraction.IServices;
 using TicketsShared.DTO.Auth;
 
 namespace TiketApp.Api.Controllers
 {
-  
-        [Route("api/[controller]")]
-        [ApiController]
-        public class AuthController : ControllerBase
+    [Route("api/[controller]")]
+    [ApiController]
+    public class AuthController : ControllerBase
+    {
+        private readonly IAuthService _authService;
+
+        public AuthController(IAuthService authService)
         {
-            private readonly IAuthService _authService;
+            _authService = authService;
+        }
 
-            public AuthController(IAuthService authService)
-            {
-                _authService = authService;
-            }
+        [HttpPost("login")]
+        [EnableRateLimiting("login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto loginRequest)
+        {
+            var result = await _authService.LoginAsync(loginRequest);
 
-            [HttpPost("login")]
-            public async Task<IActionResult> Login([FromBody] LoginRequestDto loginRequest)
-            {
-                var result = await _authService.LoginAsync(loginRequest);
+            if (result == null)
+                return Unauthorized(new { message = "Invalid credentials" });
 
-                if (result == null)
-                    return Unauthorized(new { message = "Invalid credentials" });
-
-                return Ok(result);
-            }
+            return Ok(result);
         }
     }
+}

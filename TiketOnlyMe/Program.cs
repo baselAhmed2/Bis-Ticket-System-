@@ -1,10 +1,13 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using TicketsDomain.Models;
 using TicketsPerstince.Data.DataSeeding;
+using TicketsShared.Common;
 using TiketApp.Api.Extensions;
+using TiketApp.Api.Middleware;
 using TicketsPerstince.Data.DbContexts;
+using TiketApp.Api.Controllers;
 
 namespace TiketOnlyMe
 {
@@ -14,8 +17,32 @@ namespace TiketOnlyMe
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Controllers + Swagger
-            builder.Services.AddControllers();
+            // ✅ Limit request body size (1MB)
+            builder.WebHost.ConfigureKestrel(options =>
+            {
+                options.Limits.MaxRequestBodySize = 1_048_576; // 1MB
+            });
+
+            // Controllers + Swagger + Model Validation
+            builder.Services.AddControllers()
+                .AddApplicationPart(typeof(AuthController).Assembly)
+                .ConfigureApiBehaviorOptions(options =>
+                {
+                    options.InvalidModelStateResponseFactory = context =>
+                    {
+                        var errors = context.ModelState
+                            .Where(e => e.Value?.Errors.Count > 0)
+                            .SelectMany(e => e.Value!.Errors)
+                            .Select(e => e.ErrorMessage)
+                            .ToList();
+
+                        var response = ApiResponse<object>.ErrorResponse(
+                            "Validation failed", errors);
+
+                        return new BadRequestObjectResult(response);
+                    };
+                });
+
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
@@ -27,6 +54,8 @@ namespace TiketOnlyMe
             builder.Services.AddDataSeeding();
             builder.Services.AddApplicationServices();
             builder.Services.AddCachingServices();
+            builder.Services.AddRateLimitingServices();
+            builder.Services.AddCorsServices();
 
             var app = builder.Build();
 
@@ -39,6 +68,12 @@ namespace TiketOnlyMe
                 await initializer.InitializeAsync();
             }
 
+            // ✅ Security Headers
+            app.UseMiddleware<SecurityHeadersMiddleware>();
+
+            // Global Exception Handling
+            app.UseMiddleware<GlobalExceptionMiddleware>();
+
             // Swagger
             if (app.Environment.IsDevelopment())
             {
@@ -47,6 +82,12 @@ namespace TiketOnlyMe
             }
 
             app.UseHttpsRedirection();
+
+            // ✅ CORS (قبل Auth)
+            app.UseCors("AllowFrontend");
+
+            // ✅ Rate Limiting (قبل Auth)
+            app.UseRateLimiter();
 
             app.UseAuthentication();
             app.UseAuthorization();

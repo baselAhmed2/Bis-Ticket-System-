@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Threading.RateLimiting;
 using TicketsDomain.IRepositories;
 using TicketsDomain.Models;
 using TicketsPerstince.Data;
@@ -26,7 +28,6 @@ namespace TiketApp.Api.Extensions
                 options.UseSqlServer(
                     configuration.GetConnectionString("DefaultConnection")));
 
-            // علشان TicketService يقدر ياخد DbContext
             services.AddScoped<DbContext>(sp =>
                 sp.GetRequiredService<ApplicationDbContext>());
 
@@ -39,12 +40,16 @@ namespace TiketApp.Api.Extensions
         {
             services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
-                // تخفيف شروط الباسورد علشان الـ SSN (أرقام بس)
                 options.Password.RequireDigit = true;
                 options.Password.RequireLowercase = false;
                 options.Password.RequireUppercase = false;
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequiredLength = 6;
+
+                // ✅ Lockout بعد محاولات فاشلة
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Lockout.AllowedForNewUsers = true;
             })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
@@ -111,28 +116,84 @@ namespace TiketApp.Api.Extensions
         public static IServiceCollection AddApplicationServices(
             this IServiceCollection services)
         {
-            // Week 2 - Auth
             services.AddScoped<IAuthService, AuthService>();
-
-            // Week 3 - Tickets
             services.AddScoped<ITicketService, TicketService>();
-
-            // Week 4 - Doctor (هتتضاف لاحقاً)
-             services.AddScoped<IDoctorService, DoctorService>();
-
-            // Week 5 - Admin (هتتضاف لاحقاً)
+            services.AddScoped<IDoctorService, DoctorService>();
             services.AddScoped<IAdminService, AdminService>();
+            services.AddScoped<IAnalyticsService, AnalyticsService>();
 
             return services;
         }
-        // 6️⃣ Caching
+
+        // 7️⃣ Caching
         public static IServiceCollection AddCachingServices(
             this IServiceCollection services)
         {
-            // In-Memory Cache
             services.AddMemoryCache();
+            return services;
+        }
 
-         
+        // 8️⃣ Rate Limiting (حماية من DDoS)
+        public static IServiceCollection AddRateLimitingServices(
+            this IServiceCollection services)
+        {
+            services.AddRateLimiter(options =>
+            {
+                // ✅ Global — كل IP له حد عام
+                options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
+                    context => RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                        factory: _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = 100,              // 100 request
+                            Window = TimeSpan.FromMinutes(1), // per minute
+                            QueueLimit = 0
+                        }));
+
+                // ✅ Login — حماية خاصة من Brute Force
+                options.AddFixedWindowLimiter("login", limiterOptions =>
+                {
+                    limiterOptions.PermitLimit = 5;               // 5 محاولات
+                    limiterOptions.Window = TimeSpan.FromMinutes(5); // كل 5 دقايق
+                    limiterOptions.QueueLimit = 0;
+                });
+
+                // ✅ API — للـ endpoints العادية
+                options.AddFixedWindowLimiter("api", limiterOptions =>
+                {
+                    limiterOptions.PermitLimit = 30;
+                    limiterOptions.Window = TimeSpan.FromMinutes(1);
+                    limiterOptions.QueueLimit = 2;
+                });
+
+                // ✅ الـ Response لما يتجاوز الـ Limit
+                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+                options.OnRejected = async (context, cancellationToken) =>
+                {
+                    context.HttpContext.Response.ContentType = "application/json";
+                    await context.HttpContext.Response.WriteAsync(
+                        """{"success":false,"message":"Too many requests. Please try again later.","errors":[]}""",
+                        cancellationToken);
+                };
+            });
+
+            return services;
+        }
+
+        // 9️⃣ CORS
+        public static IServiceCollection AddCorsServices(
+            this IServiceCollection services)
+        {
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend", policy =>
+                {
+                    policy.WithOrigins("http://localhost:3000", "http://localhost:5173")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
+
             return services;
         }
     }
