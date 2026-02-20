@@ -57,9 +57,11 @@ namespace TiketApp.Api.Controllers
 
         [HttpGet("all")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(
+            [FromQuery] int pageIndex = 1,
+            [FromQuery] int pageSize = 10)
         {
-            var tickets = await _ticketService.GetAllAsync();
+            var tickets = await _ticketService.GetAllPagedAsync(pageIndex, pageSize);
             return Ok(tickets);
         }
 

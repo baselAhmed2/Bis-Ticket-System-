@@ -9,20 +9,18 @@ namespace TicketsServiesAbstraction.IServices
     {
         // Get Operations
         Task<TicketDto?> GetByIdAsync(string id);
-        Task<IEnumerable<TicketDto>> GetAllAsync();
+        Task<PagedResultDto<TicketDto>> GetAllPagedAsync(int pageIndex, int pageSize);
 
         // Lookup Operations
         Task<IEnumerable<SubjectLookupDto>> GetSubjectsByLevelAndTermAsync(int level, int term);
         Task<IEnumerable<DoctorLookupDto>> GetDoctorsBySubjectAsync(string subjectId);
 
         // Student Operations
-        Task<IEnumerable<TicketDto>> GetByStudentIdAsync(string studentId);
         Task<PagedResultDto<TicketDto>> GetByStudentIdPagedAsync(
             string studentId, int pageIndex, int pageSize);
         Task<TicketDto> CreateAsync(string studentId, CreateTicketDto dto);
 
         // Doctor Operations
-        Task<IEnumerable<TicketDto>> GetByDoctorIdAsync(string doctorId);
         Task<PagedResultDto<TicketDto>> GetByDoctorIdPagedAsync(
             string doctorId, int pageIndex, int pageSize);
         Task<bool> ReplyAsync(ReplyToTicketDto dto, string senderId, string senderRole);

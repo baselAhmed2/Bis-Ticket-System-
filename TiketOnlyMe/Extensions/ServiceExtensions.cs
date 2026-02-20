@@ -118,11 +118,21 @@ namespace TiketApp.Api.Extensions
             services.AddScoped<ITicketService, TicketService>();
 
             // Week 4 - Doctor (هتتضاف لاحقاً)
-            // services.AddScoped<IDoctorService, DoctorService>();
+             services.AddScoped<IDoctorService, DoctorService>();
 
             // Week 5 - Admin (هتتضاف لاحقاً)
-            // services.AddScoped<IAdminService, AdminService>();
+            services.AddScoped<IAdminService, AdminService>();
 
+            return services;
+        }
+        // 6️⃣ Caching
+        public static IServiceCollection AddCachingServices(
+            this IServiceCollection services)
+        {
+            // In-Memory Cache
+            services.AddMemoryCache();
+
+         
             return services;
         }
     }

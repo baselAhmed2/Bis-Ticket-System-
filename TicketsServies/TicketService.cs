@@ -12,6 +12,7 @@ using TicketsShared.DTO.Lookups;
 using TicketsShared.DTO.Tickets;
 using TicketsShared.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace TicketsServies
 {
@@ -19,11 +20,13 @@ namespace TicketsServies
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly DbContext _context;
+        private readonly IMemoryCache _cache;
 
-        public TicketService(IUnitOfWork unitOfWork, DbContext context)
+        public TicketService(IUnitOfWork unitOfWork, DbContext context, IMemoryCache cache)
         {
             _unitOfWork = unitOfWork;
             _context = context;
+            _cache = cache;
         }
 
         // =====================
@@ -48,6 +51,25 @@ namespace TicketsServies
                 .GetAllAsync(spec);
 
             return tickets.Select(MapToDto);
+        }
+
+        public async Task<PagedResultDto<TicketDto>> GetAllPagedAsync(int pageIndex, int pageSize)
+        {
+            var spec = new TicketWithDetailsSpec(pageIndex, pageSize);
+            var countSpec = new TicketWithDetailsSpec();
+
+            var repo = _unitOfWork.GetRepository<Ticket, string>();
+
+            var tickets = await repo.GetAllAsync(spec);
+            var totalCount = await repo.CountAsync(countSpec);
+
+            return new PagedResultDto<TicketDto>
+            {
+                Data = tickets.Select(MapToDto),
+                TotalCount = totalCount,
+                PageIndex = pageIndex,
+                PageSize = pageSize
+            };
         }
 
         // =====================
@@ -132,7 +154,7 @@ namespace TicketsServies
             await _unitOfWork.GetRepository<Ticket, string>().AddAsync(ticket);
             await _unitOfWork.SaveChangesAsync();
 
-            return (await GetByIdAsync(ticketId))!;
+                return (await GetByIdAsync(ticketId))!;
         }
 
         // =====================
@@ -179,7 +201,22 @@ namespace TicketsServies
             };
 
             await _unitOfWork.GetRepository<Message, int>().AddAsync(message);
-            return await _unitOfWork.SaveChangesAsync() > 0;
+            var result = await _unitOfWork.SaveChangesAsync() > 0;
+
+            if (result)
+            {
+                // Invalidate doctor stats cache
+                var ticket = await _unitOfWork.GetRepository<Ticket, string>()
+                    .GetByIdAsync(dto.TicketId);
+
+                if (ticket != null)
+                {
+                    _cache.Remove($"doctor_stats_{ticket.DoctorId}");
+                    _cache.Remove($"doctor_subjects_detail_{ticket.DoctorId}");
+                }
+            }
+
+            return result;
         }
 
         public async Task<TicketDto?> UpdateStatusAsync(string id, TicketStatus status)
@@ -193,6 +230,9 @@ namespace TicketsServies
             await _unitOfWork.GetRepository<Ticket, string>().UpdateAsync(ticket);
             await _unitOfWork.SaveChangesAsync();
 
+            // Invalidate doctor stats cache (status changed)
+            _cache.Remove($"doctor_stats_{ticket.DoctorId}");
+
             return await GetByIdAsync(id);
         }
 
@@ -201,8 +241,20 @@ namespace TicketsServies
         // =====================
         public async Task<bool> DeleteAsync(string id)
         {
+            // Get ticket before delete to know doctorId for cache invalidation
+            var ticket = await _unitOfWork.GetRepository<Ticket, string>()
+                .GetByIdAsync(id);
+
             await _unitOfWork.GetRepository<Ticket, string>().DeleteAsync(id);
-            return await _unitOfWork.SaveChangesAsync() > 0;
+            var result = await _unitOfWork.SaveChangesAsync() > 0;
+
+            if (result && ticket != null)
+            {
+                _cache.Remove($"doctor_stats_{ticket.DoctorId}");
+                _cache.Remove($"doctor_subjects_detail_{ticket.DoctorId}");
+            }
+
+            return result;
         }
 
         // =====================

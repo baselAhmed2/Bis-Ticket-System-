@@ -47,10 +47,10 @@ namespace TicketsPerstince.Repository
             return await _dbContext.Set<TEntity>().FindAsync(id);
         }
 
-        public  async Task UpdateAsync(TEntity entity)
+        public Task UpdateAsync(TEntity entity)
         {
             _dbContext.Set<TEntity>().Update(entity);
-            await Task.CompletedTask;
+            return Task.CompletedTask;
         }
 
         public async Task DeleteAsync(TKey id)

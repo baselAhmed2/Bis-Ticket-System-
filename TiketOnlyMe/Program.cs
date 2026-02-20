@@ -26,6 +26,7 @@ namespace TiketOnlyMe
             builder.Services.AddRepositoryServices();
             builder.Services.AddDataSeeding();
             builder.Services.AddApplicationServices();
+            builder.Services.AddCachingServices();
 
             var app = builder.Build();
 
