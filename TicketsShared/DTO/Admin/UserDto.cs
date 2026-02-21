@@ -12,5 +12,6 @@ namespace TicketsShared.DTO.Admin
         public string UserName { get; set; }
         public string Name { get; set; }
         public string Role { get; set; }
+        public string? Program { get; set; } // ✅ لازم تكون موجودة
     }
 }

@@ -9,21 +9,27 @@ namespace TicketsDomain.Specifications.TicketSpecs
 {
     public class HighPriorityTicketsSpec : BaseSpecification<Ticket, string>
     {
-        public HighPriorityTicketsSpec()
-            : base(t => t.IsHighPriority == true)
+        // Get All (with optional program filter)
+        public HighPriorityTicketsSpec(string? program = null)
+            : base(t => t.IsHighPriority
+                && (program == null || t.Program == program))
         {
             AddInclude(t => t.Student);
             AddInclude(t => t.Doctor);
             AddInclude(t => t.Subject);
+            AddInclude(t => t.Messages);
             ApplyOrderByDescending(t => t.CreatedAt);
         }
 
-        public HighPriorityTicketsSpec(int pageIndex, int pageSize)
-            : base(t => t.IsHighPriority == true)
+        // Get All with Paging (with optional program filter)
+        public HighPriorityTicketsSpec(int pageIndex, int pageSize, string? program = null)
+            : base(t => t.IsHighPriority
+                && (program == null || t.Program == program))
         {
             AddInclude(t => t.Student);
             AddInclude(t => t.Doctor);
             AddInclude(t => t.Subject);
+            AddInclude(t => t.Messages);
             ApplyOrderByDescending(t => t.CreatedAt);
             ApplyPaging(pageSize, pageIndex);
         }

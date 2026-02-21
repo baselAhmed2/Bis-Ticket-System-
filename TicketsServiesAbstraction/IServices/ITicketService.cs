@@ -12,7 +12,9 @@ namespace TicketsServiesAbstraction.IServices
         Task<PagedResultDto<TicketDto>> GetAllPagedAsync(int pageIndex, int pageSize);
 
         // Lookup Operations
-        Task<IEnumerable<SubjectLookupDto>> GetSubjectsByLevelAndTermAsync(int level, int term);
+        Task<IEnumerable<SubjectLookupDto>> GetSubjectsByLevelAndTermAsync(
+            int level, int term, string? program = null); // ? FIX: ????? program
+
         Task<IEnumerable<DoctorLookupDto>> GetDoctorsBySubjectAsync(string subjectId);
 
         // Student Operations

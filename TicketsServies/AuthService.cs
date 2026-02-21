@@ -1,11 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
 using TicketsDomain.Models;
 using TicketsServiesAbstraction.IServices;
@@ -51,7 +47,8 @@ namespace TicketsServies
                 Token = token,
                 UserId = user.Id,
                 Name = user.Name,
-                Role = role
+                Role = role,
+                Program = user.Program
             };
         }
 
@@ -64,19 +61,22 @@ namespace TicketsServies
             return roles.FirstOrDefault();
         }
 
-        // =====================
-        // Helper Methods
-        // =====================
         private string GenerateJwtToken(ApplicationUser user, string role)
         {
-            var claims = new[]
+            var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(ClaimTypes.Name, user.Name),
-                new Claim(ClaimTypes.Role, role)
+                new(JwtRegisteredClaimNames.Sub, user.Id),
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new(ClaimTypes.NameIdentifier, user.Id),
+                new(ClaimTypes.Name, user.Name),
+                new(ClaimTypes.Role, role)
             };
+
+            // إضافة الـ Program كـ Claim لو موجود
+            if (!string.IsNullOrEmpty(user.Program))
+            {
+                claims.Add(new Claim("Program", user.Program));
+            }
 
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(_jwtSettings.Secret));

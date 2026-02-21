@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using TicketsDomain.Models;
 using TicketsShared.Enums;
 
@@ -19,9 +15,10 @@ namespace TicketsDomain.Specifications.TicketSpecs
             string? subjectId = null,
             string? searchTicketId = null,
             bool? isHighPriority = null,
+            string? program = null,
             int? pageIndex = null,
             int? pageSize = null)
-            : base(BuildCriteria(level, term, status, doctorId, subjectId, searchTicketId, isHighPriority))
+            : base(BuildCriteria(level, term, status, doctorId, subjectId, searchTicketId, isHighPriority, program))
         {
             AddInclude(t => t.Student);
             AddInclude(t => t.Doctor);
@@ -43,25 +40,26 @@ namespace TicketsDomain.Specifications.TicketSpecs
             string? doctorId,
             string? subjectId,
             string? searchTicketId,
-            bool? isHighPriority)
+            bool? isHighPriority,
+            string? program)
         {
-            // Start with no filter
             Expression<Func<Ticket, bool>>? criteria = null;
 
             if (!string.IsNullOrWhiteSpace(searchTicketId))
             {
-                criteria = t => t.Id.Contains(searchTicketId);
+                criteria = t => t.Id.Contains(searchTicketId)
+                    && (string.IsNullOrEmpty(program) || t.Program == program);
             }
             else
             {
-                // Build combined criteria
                 criteria = t =>
                     (!level.HasValue || t.Level == level.Value) &&
                     (!term.HasValue || t.Term == term.Value) &&
                     (!status.HasValue || t.Status == status.Value) &&
                     (string.IsNullOrEmpty(doctorId) || t.DoctorId == doctorId) &&
                     (string.IsNullOrEmpty(subjectId) || t.SubjectId == subjectId) &&
-                    (!isHighPriority.HasValue || t.IsHighPriority == isHighPriority.Value);
+                    (!isHighPriority.HasValue || t.IsHighPriority == isHighPriority.Value) &&
+                    (string.IsNullOrEmpty(program) || t.Program == program);
             }
 
             return criteria;

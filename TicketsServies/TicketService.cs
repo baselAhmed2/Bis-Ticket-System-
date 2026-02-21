@@ -75,10 +75,19 @@ namespace TicketsServies
         // =====================
         // Lookup Operations
         // =====================
-        public async Task<IEnumerable<SubjectLookupDto>> GetSubjectsByLevelAndTermAsync(int level, int term)
+        public async Task<IEnumerable<SubjectLookupDto>> GetSubjectsByLevelAndTermAsync(
+            int level, int term, string? program = null)
         {
-            return await _context.Set<Subject>()
-                .Where(s => s.Level == level && s.Term == term)
+            var query = _context.Set<Subject>()
+                .Where(s => s.Level == level && s.Term == term);
+
+            // ✅ FIX: فلترة بالبرنامج لو الطالب تابع لبرنامج معين
+            if (!string.IsNullOrEmpty(program))
+            {
+                query = query.Where(s => s.Program == program);
+            }
+
+            return await query
                 .Select(s => new SubjectLookupDto
                 {
                     Id = s.Id,
@@ -133,7 +142,10 @@ namespace TicketsServies
 
         public async Task<TicketDto> CreateAsync(string studentId, CreateTicketDto dto)
         {
-            // Generate Ticket ID
+            // ✅ FIX: جلب الـ Subject عشان نعرف الـ Program
+            var subject = await _context.Set<Subject>().FindAsync(dto.SubjectId)
+                ?? throw new InvalidOperationException($"Subject '{dto.SubjectId}' not found.");
+
             var ticketId = await GenerateTicketIdAsync(studentId, dto.SubjectId, dto.DoctorId);
 
             var ticket = new Ticket
@@ -148,13 +160,14 @@ namespace TicketsServies
                 DoctorId = dto.DoctorId,
                 SubjectId = dto.SubjectId,
                 Status = TicketStatus.New,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                Program = subject.Program, // ✅ FIX: كان ناقص — هيسبب DB crash
             };
 
             await _unitOfWork.GetRepository<Ticket, string>().AddAsync(ticket);
             await _unitOfWork.SaveChangesAsync();
 
-                return (await GetByIdAsync(ticketId))!;
+            return (await GetByIdAsync(ticketId))!;
         }
 
         // =====================
@@ -196,7 +209,7 @@ namespace TicketsServies
                 TicketId = dto.TicketId,
                 SenderId = senderId,
                 Body = dto.Body,
-                IsHighPriority = senderRole == "Admin",
+                IsHighPriority = senderRole is "SuperAdmin" or "SubAdmin", // ✅ FIX: كان "Admin"
                 SentAt = DateTime.UtcNow
             };
 
@@ -205,7 +218,6 @@ namespace TicketsServies
 
             if (result)
             {
-                // Invalidate doctor stats cache
                 var ticket = await _unitOfWork.GetRepository<Ticket, string>()
                     .GetByIdAsync(dto.TicketId);
 
@@ -230,7 +242,6 @@ namespace TicketsServies
             await _unitOfWork.GetRepository<Ticket, string>().UpdateAsync(ticket);
             await _unitOfWork.SaveChangesAsync();
 
-            // Invalidate doctor stats cache (status changed)
             _cache.Remove($"doctor_stats_{ticket.DoctorId}");
 
             return await GetByIdAsync(id);
@@ -241,7 +252,6 @@ namespace TicketsServies
         // =====================
         public async Task<bool> DeleteAsync(string id)
         {
-            // Get ticket before delete to know doctorId for cache invalidation
             var ticket = await _unitOfWork.GetRepository<Ticket, string>()
                 .GetByIdAsync(id);
 
@@ -263,12 +273,10 @@ namespace TicketsServies
         private async Task<string> GenerateTicketIdAsync(
             string studentId, string subjectId, string doctorId)
         {
-            // آخر 4 أرقام من الـ Student ID
             var studentSuffix = studentId.Length >= 4
                 ? studentId.Substring(studentId.Length - 4)
                 : studentId;
 
-            // عدد التكتات للطالب في نفس المادة
             var countSpec = new TicketByStudentAndSubjectSpec(studentId, subjectId);
             var ticketCount = await _unitOfWork.GetRepository<Ticket, string>()
                 .CountAsync(countSpec);
@@ -291,6 +299,7 @@ namespace TicketsServies
                 Status = ticket.Status,
                 IsHighPriority = ticket.IsHighPriority,
                 CreatedAt = ticket.CreatedAt,
+                Program = ticket.Program, // ✅ FIX: كان ناقص
 
                 StudentId = ticket.StudentId,
                 StudentName = ticket.Student?.Name ?? "",

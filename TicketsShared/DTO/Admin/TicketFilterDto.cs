@@ -1,8 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TicketsShared.Enums;
 
 namespace TicketsShared.DTO.Admin
@@ -16,6 +11,7 @@ namespace TicketsShared.DTO.Admin
         public string? SubjectId { get; set; }
         public string? SearchTicketId { get; set; }
         public bool? IsHighPriority { get; set; }
+        public string? Program { get; set; }
         public int PageIndex { get; set; } = 1;
         public int PageSize { get; set; } = 10;
     }

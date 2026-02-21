@@ -25,6 +25,10 @@ namespace TicketsPerstince.Data.Configuration
 
             builder.Property(s => s.Level)
                 .IsRequired();
+
+            builder.Property(s => s.Program)
+                .IsRequired()
+                .HasMaxLength(10);
         }
     }
 }

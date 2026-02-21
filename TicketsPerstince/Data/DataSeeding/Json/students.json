@@ -2,41 +2,49 @@
   {
     "id": "512393201",
     "ssn": "30001011234561",
-    "name": "Basel Ahmed"
+    "name": "Basel Ahmed",
+    "program": "BIS"
   },
   {
     "id": "512393202",
     "ssn": "30001011234562",
-    "name": "Omar Mohamed"
+    "name": "Omar Mohamed",
+    "program": "BIS"
   },
   {
     "id": "512393203",
     "ssn": "30001011234563",
-    "name": "Sara Ali"
+    "name": "Sara Ali",
+    "program": "BIS"
   },
   {
     "id": "512393204",
     "ssn": "30001011234564",
-    "name": "Ahmed Hassan"
+    "name": "Ahmed Hassan",
+    "program": "BIS"
   },
   {
     "id": "512393205",
     "ssn": "30001011234565",
-    "name": "Mona Khaled"
+    "name": "Mona Khaled",
+    "program": "FMI"
   },
   {
     "id": "512393206",
     "ssn": "30001011234566",
-    "name": "Youssef Samir"
+    "name": "Youssef Samir",
+    "program": "FMI"
   },
   {
     "id": "512393207",
     "ssn": "30001011234567",
-    "name": "Heba Nader"
+    "name": "Heba Nader",
+    "program": "CS"
   },
   {
     "id": "512393208",
     "ssn": "30001011234568",
-    "name": "Tamer Adel"
+    "name": "Tamer Adel",
+    "program": "CS"
   }
 ]

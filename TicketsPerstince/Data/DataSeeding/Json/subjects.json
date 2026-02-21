@@ -3,147 +3,504 @@
     "id": "BIS101",
     "name": "Mathematics 1",
     "level": 1,
-    "term": 1
+    "term": 1,
+    "program": "BIS"
   },
   {
     "id": "BIS102",
     "name": "Physics 1",
     "level": 1,
-    "term": 1
+    "term": 1,
+    "program": "BIS"
   },
   {
     "id": "BIS103",
     "name": "Programming 1",
     "level": 1,
-    "term": 1
+    "term": 1,
+    "program": "BIS"
   },
   {
     "id": "BIS104",
     "name": "Mathematics 2",
     "level": 1,
-    "term": 2
+    "term": 2,
+    "program": "BIS"
   },
   {
     "id": "BIS105",
     "name": "Physics 2",
     "level": 1,
-    "term": 2
+    "term": 2,
+    "program": "BIS"
   },
   {
     "id": "BIS106",
     "name": "Programming 2",
     "level": 1,
-    "term": 2
+    "term": 2,
+    "program": "BIS"
   },
-
   {
     "id": "BIS201",
     "name": "Data Structures",
     "level": 2,
-    "term": 1
+    "term": 1,
+    "program": "BIS"
   },
   {
     "id": "BIS202",
     "name": "Database 1",
     "level": 2,
-    "term": 1
+    "term": 1,
+    "program": "BIS"
   },
   {
     "id": "BIS203",
     "name": "Networks 1",
     "level": 2,
-    "term": 1
+    "term": 1,
+    "program": "BIS"
   },
   {
     "id": "BIS204",
     "name": "Algorithms",
     "level": 2,
-    "term": 2
+    "term": 2,
+    "program": "BIS"
   },
   {
     "id": "BIS205",
     "name": "Database 2",
     "level": 2,
-    "term": 2
+    "term": 2,
+    "program": "BIS"
   },
   {
     "id": "BIS206",
     "name": "Networks 2",
     "level": 2,
-    "term": 2
+    "term": 2,
+    "program": "BIS"
   },
-
   {
     "id": "BIS301",
     "name": "Software Engineering",
     "level": 3,
-    "term": 1
+    "term": 1,
+    "program": "BIS"
   },
   {
     "id": "BIS302",
     "name": "Web Development",
     "level": 3,
-    "term": 1
+    "term": 1,
+    "program": "BIS"
   },
   {
     "id": "BIS303",
     "name": "AI Introduction",
     "level": 3,
-    "term": 1
+    "term": 1,
+    "program": "BIS"
   },
   {
     "id": "BIS304",
     "name": "Mobile Development",
     "level": 3,
-    "term": 2
+    "term": 2,
+    "program": "BIS"
   },
   {
     "id": "BIS305",
     "name": "Cloud Computing",
     "level": 3,
-    "term": 2
+    "term": 2,
+    "program": "BIS"
   },
   {
     "id": "BIS306",
     "name": "Cyber Security",
     "level": 3,
-    "term": 2
+    "term": 2,
+    "program": "BIS"
   },
-
   {
     "id": "BIS401",
     "name": "Graduation Project 1",
     "level": 4,
-    "term": 1
+    "term": 1,
+    "program": "BIS"
   },
   {
     "id": "BIS402",
     "name": "Machine Learning",
     "level": 4,
-    "term": 1
+    "term": 1,
+    "program": "BIS"
   },
   {
     "id": "BIS403",
     "name": "Big Data",
     "level": 4,
-    "term": 1
+    "term": 1,
+    "program": "BIS"
   },
   {
     "id": "BIS404",
     "name": "Graduation Project 2",
     "level": 4,
-    "term": 2
+    "term": 2,
+    "program": "BIS"
   },
   {
     "id": "BIS405",
     "name": "Deep Learning",
     "level": 4,
-    "term": 2
+    "term": 2,
+    "program": "BIS"
   },
   {
     "id": "BIS406",
     "name": "IoT",
     "level": 4,
-    "term": 2
+    "term": 2,
+    "program": "BIS"
+  },
+  {
+    "id": "FMI101",
+    "name": "Calculus 1",
+    "level": 1,
+    "term": 1,
+    "program": "FMI"
+  },
+  {
+    "id": "FMI102",
+    "name": "Linear Algebra",
+    "level": 1,
+    "term": 1,
+    "program": "FMI"
+  },
+  {
+    "id": "FMI103",
+    "name": "Statistics 1",
+    "level": 1,
+    "term": 1,
+    "program": "FMI"
+  },
+  {
+    "id": "FMI104",
+    "name": "Calculus 2",
+    "level": 1,
+    "term": 2,
+    "program": "FMI"
+  },
+  {
+    "id": "FMI105",
+    "name": "Discrete Mathematics",
+    "level": 1,
+    "term": 2,
+    "program": "FMI"
+  },
+  {
+    "id": "FMI106",
+    "name": "Statistics 2",
+    "level": 1,
+    "term": 2,
+    "program": "FMI"
+  },
+  {
+    "id": "FMI201",
+    "name": "Numerical Analysis",
+    "level": 2,
+    "term": 1,
+    "program": "FMI"
+  },
+  {
+    "id": "FMI202",
+    "name": "Operations Research 1",
+    "level": 2,
+    "term": 1,
+    "program": "FMI"
+  },
+  {
+    "id": "FMI203",
+    "name": "Probability Theory",
+    "level": 2,
+    "term": 1,
+    "program": "FMI"
+  },
+  {
+    "id": "FMI204",
+    "name": "Optimization",
+    "level": 2,
+    "term": 2,
+    "program": "FMI"
+  },
+  {
+    "id": "FMI205",
+    "name": "Operations Research 2",
+    "level": 2,
+    "term": 2,
+    "program": "FMI"
+  },
+  {
+    "id": "FMI206",
+    "name": "Stochastic Processes",
+    "level": 2,
+    "term": 2,
+    "program": "FMI"
+  },
+  {
+    "id": "FMI301",
+    "name": "Mathematical Modeling",
+    "level": 3,
+    "term": 1,
+    "program": "FMI"
+  },
+  {
+    "id": "FMI302",
+    "name": "Financial Mathematics",
+    "level": 3,
+    "term": 1,
+    "program": "FMI"
+  },
+  {
+    "id": "FMI303",
+    "name": "Data Analysis",
+    "level": 3,
+    "term": 1,
+    "program": "FMI"
+  },
+  {
+    "id": "FMI304",
+    "name": "Insurance Mathematics",
+    "level": 3,
+    "term": 2,
+    "program": "FMI"
+  },
+  {
+    "id": "FMI305",
+    "name": "Game Theory",
+    "level": 3,
+    "term": 2,
+    "program": "FMI"
+  },
+  {
+    "id": "FMI306",
+    "name": "Simulation",
+    "level": 3,
+    "term": 2,
+    "program": "FMI"
+  },
+  {
+    "id": "FMI401",
+    "name": "Graduation Project 1",
+    "level": 4,
+    "term": 1,
+    "program": "FMI"
+  },
+  {
+    "id": "FMI402",
+    "name": "Risk Analysis",
+    "level": 4,
+    "term": 1,
+    "program": "FMI"
+  },
+  {
+    "id": "FMI403",
+    "name": "Decision Theory",
+    "level": 4,
+    "term": 1,
+    "program": "FMI"
+  },
+  {
+    "id": "FMI404",
+    "name": "Graduation Project 2",
+    "level": 4,
+    "term": 2,
+    "program": "FMI"
+  },
+  {
+    "id": "FMI405",
+    "name": "Econometrics",
+    "level": 4,
+    "term": 2,
+    "program": "FMI"
+  },
+  {
+    "id": "FMI406",
+    "name": "Applied Statistics",
+    "level": 4,
+    "term": 2,
+    "program": "FMI"
+  },
+  {
+    "id": "CS101",
+    "name": "Intro to Computer Science",
+    "level": 1,
+    "term": 1,
+    "program": "CS"
+  },
+  {
+    "id": "CS102",
+    "name": "Programming Fundamentals",
+    "level": 1,
+    "term": 1,
+    "program": "CS"
+  },
+  {
+    "id": "CS103",
+    "name": "Digital Logic",
+    "level": 1,
+    "term": 1,
+    "program": "CS"
+  },
+  {
+    "id": "CS104",
+    "name": "OOP",
+    "level": 1,
+    "term": 2,
+    "program": "CS"
+  },
+  {
+    "id": "CS105",
+    "name": "Computer Architecture",
+    "level": 1,
+    "term": 2,
+    "program": "CS"
+  },
+  {
+    "id": "CS106",
+    "name": "Discrete Structures",
+    "level": 1,
+    "term": 2,
+    "program": "CS"
+  },
+  {
+    "id": "CS201",
+    "name": "Data Structures",
+    "level": 2,
+    "term": 1,
+    "program": "CS"
+  },
+  {
+    "id": "CS202",
+    "name": "Operating Systems",
+    "level": 2,
+    "term": 1,
+    "program": "CS"
+  },
+  {
+    "id": "CS203",
+    "name": "Database Systems",
+    "level": 2,
+    "term": 1,
+    "program": "CS"
+  },
+  {
+    "id": "CS204",
+    "name": "Algorithms",
+    "level": 2,
+    "term": 2,
+    "program": "CS"
+  },
+  {
+    "id": "CS205",
+    "name": "Computer Networks",
+    "level": 2,
+    "term": 2,
+    "program": "CS"
+  },
+  {
+    "id": "CS206",
+    "name": "Theory of Computation",
+    "level": 2,
+    "term": 2,
+    "program": "CS"
+  },
+  {
+    "id": "CS301",
+    "name": "Compiler Design",
+    "level": 3,
+    "term": 1,
+    "program": "CS"
+  },
+  {
+    "id": "CS302",
+    "name": "Artificial Intelligence",
+    "level": 3,
+    "term": 1,
+    "program": "CS"
+  },
+  {
+    "id": "CS303",
+    "name": "Software Engineering",
+    "level": 3,
+    "term": 1,
+    "program": "CS"
+  },
+  {
+    "id": "CS304",
+    "name": "Distributed Systems",
+    "level": 3,
+    "term": 2,
+    "program": "CS"
+  },
+  {
+    "id": "CS305",
+    "name": "Computer Graphics",
+    "level": 3,
+    "term": 2,
+    "program": "CS"
+  },
+  {
+    "id": "CS306",
+    "name": "Information Security",
+    "level": 3,
+    "term": 2,
+    "program": "CS"
+  },
+  {
+    "id": "CS401",
+    "name": "Graduation Project 1",
+    "level": 4,
+    "term": 1,
+    "program": "CS"
+  },
+  {
+    "id": "CS402",
+    "name": "Machine Learning",
+    "level": 4,
+    "term": 1,
+    "program": "CS"
+  },
+  {
+    "id": "CS403",
+    "name": "Cloud & DevOps",
+    "level": 4,
+    "term": 1,
+    "program": "CS"
+  },
+  {
+    "id": "CS404",
+    "name": "Graduation Project 2",
+    "level": 4,
+    "term": 2,
+    "program": "CS"
+  },
+  {
+    "id": "CS405",
+    "name": "Natural Language Processing",
+    "level": 4,
+    "term": 2,
+    "program": "CS"
+  },
+  {
+    "id": "CS406",
+    "name": "Embedded Systems",
+    "level": 4,
+    "term": 2,
+    "program": "CS"
   }
 ]

@@ -35,9 +35,15 @@ namespace TicketsServies
         // User Management
         // =====================
         public async Task<PagedResultDto<UserDto>> GetAllUsersAsync(
-            int pageIndex, int pageSize, string? searchTerm = null)
+            int pageIndex, int pageSize, string? searchTerm = null, string? program = null)
         {
             var query = _userManager.Users.AsQueryable();
+
+            // Filter by Program (SubAdmin يشوف بس البرنامج بتاعه)
+            if (!string.IsNullOrEmpty(program))
+            {
+                query = query.Where(u => u.Program == program);
+            }
 
             // Apply Search
             query = UserSearchSpec.ApplySearch(query, searchTerm);
@@ -49,7 +55,7 @@ namespace TicketsServies
 
             var users = await query.ToListAsync();
 
-            // ✅ FIX: Batch load roles instead of N+1 queries
+            // Batch load roles
             var userIds = users.Select(u => u.Id).ToList();
             var userRoles = await _context.Set<IdentityUserRole<string>>()
                 .Where(ur => userIds.Contains(ur.UserId))
@@ -66,7 +72,8 @@ namespace TicketsServies
                 Id = user.Id,
                 UserName = user.UserName ?? user.Id,
                 Name = user.Name,
-                Role = roleMap.GetValueOrDefault(user.Id, "Unknown")
+                Role = roleMap.GetValueOrDefault(user.Id, "Unknown"),
+                Program = user.Program
             }).ToList();
 
             return new PagedResultDto<UserDto>
@@ -90,7 +97,8 @@ namespace TicketsServies
                 Id = user.Id,
                 UserName = user.UserName ?? user.Id,
                 Name = user.Name,
-                Role = roles.FirstOrDefault() ?? "Unknown"
+                Role = roles.FirstOrDefault() ?? "Unknown",
+                Program = user.Program
             };
         }
 
@@ -100,7 +108,8 @@ namespace TicketsServies
             {
                 Id = dto.Id,
                 UserName = dto.Id,
-                Name = dto.Name
+                Name = dto.Name,
+                Program = dto.Program
             };
 
             var result = await _userManager.CreateAsync(user, dto.Password);
@@ -115,7 +124,8 @@ namespace TicketsServies
                 Id = user.Id,
                 UserName = user.UserName,
                 Name = user.Name,
-                Role = dto.Role
+                Role = dto.Role,
+                Program = dto.Program
             };
         }
 
@@ -133,14 +143,12 @@ namespace TicketsServies
         // =====================
         public async Task<bool> AssignSubjectsToDoctorAsync(AssignSubjectsDto dto)
         {
-            // Remove existing subjects for this doctor
             var existing = await _context.Set<DoctorSubject>()
                 .Where(ds => ds.DoctorId == dto.DoctorId)
                 .ToListAsync();
 
             _context.Set<DoctorSubject>().RemoveRange(existing);
 
-            // Add new subjects
             foreach (var subjectId in dto.SubjectIds)
             {
                 _context.Set<DoctorSubject>().Add(new DoctorSubject
@@ -174,7 +182,8 @@ namespace TicketsServies
                     Id = ds.Subject.Id,
                     Name = ds.Subject.Name,
                     Level = ds.Subject.Level,
-                    Term = ds.Subject.Term
+                    Term = ds.Subject.Term,
+                    Program = ds.Subject.Program
                 })
                 .ToListAsync();
 
@@ -184,22 +193,30 @@ namespace TicketsServies
             return result;
         }
 
-        public async Task<IEnumerable<SubjectDto>> GetAllSubjectsAsync()
+        public async Task<IEnumerable<SubjectDto>> GetAllSubjectsAsync(string? program = null)
         {
-            const string cacheKey = "all_subjects";
+            var cacheKey = string.IsNullOrEmpty(program) ? "all_subjects" : $"subjects_{program}";
 
             // Try get from cache
             if (_cache.TryGetValue(cacheKey, out IEnumerable<SubjectDto>? cachedSubjects))
                 return cachedSubjects!;
 
             // Get from DB
-            var subjectDtos = await _context.Set<Subject>()
+            var query = _context.Set<Subject>().AsQueryable();
+
+            if (!string.IsNullOrEmpty(program))
+            {
+                query = query.Where(s => s.Program == program);
+            }
+
+            var subjectDtos = await query
                 .Select(s => new SubjectDto
                 {
                     Id = s.Id,
                     Name = s.Name,
                     Level = s.Level,
-                    Term = s.Term
+                    Term = s.Term,
+                    Program = s.Program
                 })
                 .ToListAsync();
 
@@ -222,6 +239,7 @@ namespace TicketsServies
                 subjectId: filter.SubjectId,
                 searchTicketId: filter.SearchTicketId,
                 isHighPriority: filter.IsHighPriority,
+                program: filter.Program,
                 pageIndex: filter.PageIndex,
                 pageSize: filter.PageSize
             );
@@ -233,7 +251,8 @@ namespace TicketsServies
                 doctorId: filter.DoctorId,
                 subjectId: filter.SubjectId,
                 searchTicketId: filter.SearchTicketId,
-                isHighPriority: filter.IsHighPriority
+                isHighPriority: filter.IsHighPriority,
+                program: filter.Program
             );
 
             var ticketRepo = _unitOfWork.GetRepository<Ticket, string>();
@@ -250,9 +269,9 @@ namespace TicketsServies
             };
         }
 
-        public async Task<IEnumerable<TicketDto>> GetHighPriorityTicketsAsync()
+        public async Task<IEnumerable<TicketDto>> GetHighPriorityTicketsAsync(string? program = null)
         {
-            var spec = new HighPriorityTicketsSpec();
+            var spec = new HighPriorityTicketsSpec(program);
             var tickets = await _unitOfWork.GetRepository<Ticket, string>()
                 .GetAllAsync(spec);
 
@@ -260,10 +279,10 @@ namespace TicketsServies
         }
 
         public async Task<PagedResultDto<TicketDto>> GetHighPriorityTicketsPagedAsync(
-            int pageIndex, int pageSize)
+            int pageIndex, int pageSize, string? program = null)
         {
-            var spec = new HighPriorityTicketsSpec(pageIndex, pageSize);
-            var countSpec = new HighPriorityTicketsSpec();
+            var spec = new HighPriorityTicketsSpec(pageIndex, pageSize, program);
+            var countSpec = new HighPriorityTicketsSpec(program);
 
             var ticketRepo = _unitOfWork.GetRepository<Ticket, string>();
 
@@ -307,6 +326,7 @@ namespace TicketsServies
                 Status = ticket.Status,
                 IsHighPriority = ticket.IsHighPriority,
                 CreatedAt = ticket.CreatedAt,
+                Program = ticket.Program, // ✅ FIX
 
                 StudentId = ticket.StudentId,
                 StudentName = ticket.Student?.Name ?? "",

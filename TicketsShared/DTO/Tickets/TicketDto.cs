@@ -9,29 +9,30 @@ namespace TicketsShared.DTO.Tickets
 {
     public class TicketDto
     {
-        public required string Id { get; set; }
-        public required string Title { get; set; }
-        public required string Body { get; set; }
+        public string Id { get; set; }
+        public string Title { get; set; }
+        public string Body { get; set; }
         public int Level { get; set; }
         public int Term { get; set; }
         public int GroupNumber { get; set; }
         public TicketStatus Status { get; set; }
         public bool IsHighPriority { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string Program { get; set; } // ✅ مشكلة: ناقصة
 
         // Student Info
-        public required string StudentId { get; set; }
-        public required string StudentName { get; set; }
+        public string StudentId { get; set; }
+        public string StudentName { get; set; }
 
         // Doctor Info
-        public required string DoctorId { get; set; }
-        public required string DoctorName { get; set; }
+        public string DoctorId { get; set; }
+        public string DoctorName { get; set; }
 
         // Subject Info
-        public required string SubjectId { get; set; }
-        public required string SubjectName { get; set; }
+        public string SubjectId { get; set; }
+        public string SubjectName { get; set; }
 
         // Messages
-        public required List<MessageDto> Messages { get; set; }
+        public List<MessageDto> Messages { get; set; } = [];
     }
 }

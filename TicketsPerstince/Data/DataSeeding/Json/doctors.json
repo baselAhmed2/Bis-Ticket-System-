@@ -3,72 +3,254 @@
     "id": "D001",
     "ssn": "29901011234561",
     "name": "Dr. Ahmed Ali",
+    "program": "BIS",
     "subjects": [ "BIS101", "BIS104" ]
   },
   {
     "id": "D002",
     "ssn": "29901011234562",
     "name": "Dr. Mohamed Hassan",
+    "program": "BIS",
     "subjects": [ "BIS102", "BIS105" ]
   },
   {
     "id": "D003",
     "ssn": "29901011234563",
     "name": "Dr. Sara Omar",
+    "program": "BIS",
     "subjects": [ "BIS103", "BIS106" ]
   },
   {
     "id": "D004",
     "ssn": "29901011234564",
     "name": "Dr. Khaled Samir",
+    "program": "BIS",
     "subjects": [ "BIS201", "BIS204" ]
   },
   {
     "id": "D005",
     "ssn": "29901011234565",
     "name": "Dr. Mona Adel",
+    "program": "BIS",
     "subjects": [ "BIS202", "BIS205" ]
   },
   {
     "id": "D006",
     "ssn": "29901011234566",
     "name": "Dr. Youssef Nader",
+    "program": "BIS",
     "subjects": [ "BIS203", "BIS206" ]
   },
   {
     "id": "D007",
     "ssn": "29901011234567",
     "name": "Dr. Heba Mahmoud",
+    "program": "BIS",
     "subjects": [ "BIS301", "BIS304" ]
   },
   {
     "id": "D008",
     "ssn": "29901011234568",
     "name": "Dr. Tamer Fathy",
+    "program": "BIS",
     "subjects": [ "BIS302", "BIS305" ]
   },
   {
     "id": "D009",
     "ssn": "29901011234569",
     "name": "Dr. Rania Gamal",
+    "program": "BIS",
     "subjects": [ "BIS303", "BIS306" ]
   },
   {
     "id": "D010",
     "ssn": "29901011234570",
     "name": "Dr. Amr Salah",
+    "program": "BIS",
     "subjects": [ "BIS401", "BIS404" ]
   },
   {
     "id": "D011",
     "ssn": "29901011234571",
     "name": "Dr. Dina Kamal",
+    "program": "BIS",
     "subjects": [ "BIS402", "BIS405" ]
   },
   {
     "id": "D012",
     "ssn": "29901011234572",
     "name": "Dr. Wael Ibrahim",
+    "program": "BIS",
     "subjects": [ "BIS403", "BIS406" ]
+  },
+
+  {
+    "id": "D013",
+    "ssn": "29901011234573",
+    "name": "Dr. Nadia Mostafa",
+    "program": "FMI",
+    "subjects": [ "FMI101", "FMI104" ]
+  },
+  {
+    "id": "D014",
+    "ssn": "29901011234574",
+    "name": "Dr. Hassan Fouad",
+    "program": "FMI",
+    "subjects": [ "FMI102", "FMI105" ]
+  },
+  {
+    "id": "D015",
+    "ssn": "29901011234575",
+    "name": "Dr. Layla Mansour",
+    "program": "FMI",
+    "subjects": [ "FMI103", "FMI106" ]
+  },
+  {
+    "id": "D016",
+    "ssn": "29901011234576",
+    "name": "Dr. Tarek Zaki",
+    "program": "FMI",
+    "subjects": [ "FMI201", "FMI204" ]
+  },
+  {
+    "id": "D017",
+    "ssn": "29901011234577",
+    "name": "Dr. Fatma Rizk",
+    "program": "FMI",
+    "subjects": [ "FMI202", "FMI205" ]
+  },
+  {
+    "id": "D018",
+    "ssn": "29901011234578",
+    "name": "Dr. Mahmoud Atef",
+    "program": "FMI",
+    "subjects": [ "FMI203", "FMI206" ]
+  },
+  {
+    "id": "D019",
+    "ssn": "29901011234579",
+    "name": "Dr. Samia Nabil",
+    "program": "FMI",
+    "subjects": [ "FMI301", "FMI304" ]
+  },
+  {
+    "id": "D020",
+    "ssn": "29901011234580",
+    "name": "Dr. Alaa Sherif",
+    "program": "FMI",
+    "subjects": [ "FMI302", "FMI305" ]
+  },
+  {
+    "id": "D021",
+    "ssn": "29901011234581",
+    "name": "Dr. Iman Yasser",
+    "program": "FMI",
+    "subjects": [ "FMI303", "FMI306" ]
+  },
+  {
+    "id": "D022",
+    "ssn": "29901011234582",
+    "name": "Dr. Ashraf Salem",
+    "program": "FMI",
+    "subjects": [ "FMI401", "FMI404" ]
+  },
+  {
+    "id": "D023",
+    "ssn": "29901011234583",
+    "name": "Dr. Mariam Helal",
+    "program": "FMI",
+    "subjects": [ "FMI402", "FMI405" ]
+  },
+  {
+    "id": "D024",
+    "ssn": "29901011234584",
+    "name": "Dr. Sherif Adly",
+    "program": "FMI",
+    "subjects": [ "FMI403", "FMI406" ]
+  },
+
+  {
+    "id": "D025",
+    "ssn": "29901011234585",
+    "name": "Dr. Noha Refaat",
+    "program": "CS",
+    "subjects": [ "CS101", "CS104" ]
+  },
+  {
+    "id": "D026",
+    "ssn": "29901011234586",
+    "name": "Dr. Waleed Magdy",
+    "program": "CS",
+    "subjects": [ "CS102", "CS105" ]
+  },
+  {
+    "id": "D027",
+    "ssn": "29901011234587",
+    "name": "Dr. Hala Tawfik",
+    "program": "CS",
+    "subjects": [ "CS103", "CS106" ]
+  },
+  {
+    "id": "D028",
+    "ssn": "29901011234588",
+    "name": "Dr. Karim Lotfy",
+    "program": "CS",
+    "subjects": [ "CS201", "CS204" ]
+  },
+  {
+    "id": "D029",
+    "ssn": "29901011234589",
+    "name": "Dr. Yasmin Farid",
+    "program": "CS",
+    "subjects": [ "CS202", "CS205" ]
+  },
+  {
+    "id": "D030",
+    "ssn": "29901011234590",
+    "name": "Dr. Hazem Badr",
+    "program": "CS",
+    "subjects": [ "CS203", "CS206" ]
+  },
+  {
+    "id": "D031",
+    "ssn": "29901011234591",
+    "name": "Dr. Samar Hosny",
+    "program": "CS",
+    "subjects": [ "CS301", "CS304" ]
+  },
+  {
+    "id": "D032",
+    "ssn": "29901011234592",
+    "name": "Dr. Ehab Rashed",
+    "program": "CS",
+    "subjects": [ "CS302", "CS305" ]
+  },
+  {
+    "id": "D033",
+    "ssn": "29901011234593",
+    "name": "Dr. Amani Sobhy",
+    "program": "CS",
+    "subjects": [ "CS303", "CS306" ]
+  },
+  {
+    "id": "D034",
+    "ssn": "29901011234594",
+    "name": "Dr. Mostafa Kamel",
+    "program": "CS",
+    "subjects": [ "CS401", "CS404" ]
+  },
+  {
+    "id": "D035",
+    "ssn": "29901011234595",
+    "name": "Dr. Reem Fawzy",
+    "program": "CS",
+    "subjects": [ "CS402", "CS405" ]
+  },
+  {
+    "id": "D036",
+    "ssn": "29901011234596",
+    "name": "Dr. Adel Morsy",
+    "program": "CS",
+    "subjects": [ "CS403", "CS406" ]
   }
 ]

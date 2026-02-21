@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿    using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +14,7 @@ using TicketsPerstince.Repository;
 using TicketsServiesAbstraction.IServices;
 using TicketsServies;
 using TicketsShared.Settings;
-
+    
 namespace TiketApp.Api.Extensions
 {
     public static class ServiceExtensions
@@ -188,9 +188,13 @@ namespace TiketApp.Api.Extensions
             {
                 options.AddPolicy("AllowFrontend", policy =>
                 {
-                    policy.WithOrigins("http://localhost:3000", "http://localhost:5173")
+                    policy.WithOrigins(
+                            "http://localhost:3000",
+                            "http://localhost:5173",
+                            "http://localhost:5174")
                         .AllowAnyHeader()
-                        .AllowAnyMethod();
+                        .AllowAnyMethod()
+                        .AllowCredentials();
                 });
             });
 

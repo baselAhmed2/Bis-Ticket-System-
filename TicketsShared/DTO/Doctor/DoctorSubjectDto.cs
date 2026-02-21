@@ -12,6 +12,7 @@ namespace TicketsShared.DTO.Doctor
         public string SubjectName { get; set; }
         public int Level { get; set; }
         public int Term { get; set; }
-        public int TotalTickets { get; set; }  // عدد التكتات في المادة دي
+        public string Program { get; set; } // ✅ مشكلة: ناقصة
+        public int TotalTickets { get; set; }
     }
 }

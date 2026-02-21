@@ -23,12 +23,14 @@ namespace TiketApp.Api.Controllers
         // Lookup Endpoints (for Create Ticket form)
         // =====================
 
-        // Step 1: الطالب يختار Level + Term → يطلعله المواد
+        // Step 1: الطالب يختار Level + Term → يطلعله المواد بتاعت البرنامج بتاعه
         [HttpGet("subjects")]
         [Authorize(Roles = "Student")]
         public async Task<IActionResult> GetSubjects([FromQuery] int level, [FromQuery] int term)
         {
-            var subjects = await _ticketService.GetSubjectsByLevelAndTermAsync(level, term);
+            // ✅ FIX: فلترة بالبرنامج بتاع الطالب
+            var program = User.FindFirstValue("Program");
+            var subjects = await _ticketService.GetSubjectsByLevelAndTermAsync(level, term, program);
             return Ok(subjects);
         }
 
@@ -56,7 +58,7 @@ namespace TiketApp.Api.Controllers
         }
 
         [HttpGet("all")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "SuperAdmin,SubAdmin")] // ✅ FIX: كان "Admin"
         public async Task<IActionResult> GetAll(
             [FromQuery] int pageIndex = 1,
             [FromQuery] int pageSize = 10)
@@ -70,7 +72,9 @@ namespace TiketApp.Api.Controllers
         // =====================
         [HttpGet("my-tickets")]
         [Authorize(Roles = "Student")]
-        public async Task<IActionResult> GetMyTickets([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetMyTickets(
+            [FromQuery] int pageIndex = 1,
+            [FromQuery] int pageSize = 10)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var tickets = await _ticketService.GetByStudentIdPagedAsync(userId, pageIndex, pageSize);
@@ -92,7 +96,9 @@ namespace TiketApp.Api.Controllers
         // =====================
         [HttpGet("doctor-tickets")]
         [Authorize(Roles = "Doctor")]
-        public async Task<IActionResult> GetDoctorTickets([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetDoctorTickets(
+            [FromQuery] int pageIndex = 1,
+            [FromQuery] int pageSize = 10)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var tickets = await _ticketService.GetByDoctorIdPagedAsync(userId, pageIndex, pageSize);
@@ -100,7 +106,7 @@ namespace TiketApp.Api.Controllers
         }
 
         [HttpPost("reply")]
-        [Authorize(Roles = "Doctor,Admin")]
+        [Authorize(Roles = "Doctor,SuperAdmin,SubAdmin")] // ✅ FIX: كان "Doctor,Admin"
         public async Task<IActionResult> Reply([FromBody] ReplyToTicketDto dto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
@@ -114,7 +120,7 @@ namespace TiketApp.Api.Controllers
         }
 
         [HttpPut("{id}/status")]
-        [Authorize(Roles = "Doctor,Admin")]
+        [Authorize(Roles = "Doctor,SuperAdmin,SubAdmin")] // ✅ FIX: كان "Doctor,Admin"
         public async Task<IActionResult> UpdateStatus(string id, [FromBody] int status)
         {
             var ticket = await _ticketService.UpdateStatusAsync(id, (TicketStatus)status);
@@ -129,7 +135,7 @@ namespace TiketApp.Api.Controllers
         // Admin Operations
         // =====================
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "SuperAdmin,SubAdmin")] // ✅ FIX: كان "Admin"
         public async Task<IActionResult> Delete(string id)
         {
             var result = await _ticketService.DeleteAsync(id);

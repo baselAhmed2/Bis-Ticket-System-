@@ -7,13 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using TicketsDomain.IRepositories;
 using TicketsDomain.Models;
-using TicketsDomain.Specifications;
-using TicketsDomain.Specifications.TicketSpecs;
 using TicketsServiesAbstraction.IServices;
-using TicketsShared.DTO.Common;
 using TicketsShared.DTO.Doctor;
-using TicketsShared.DTO.Lookups;
-using TicketsShared.DTO.Tickets;
 using TicketsShared.Enums;
 
 namespace TicketsServies
@@ -27,7 +22,7 @@ namespace TicketsServies
         public DoctorService(IUnitOfWork unitOfWork, DbContext context, IMemoryCache cache)
         {
             _unitOfWork = unitOfWork;
-            _context = context; 
+            _context = context;
             _cache = cache;
         }
 
@@ -38,7 +33,6 @@ namespace TicketsServies
             if (_cache.TryGetValue(cacheKey, out DoctorStatsDto? cachedStats))
                 return cachedStats!;
 
-            // ✅ Single query with GroupBy instead of 4 separate queries
             var statusCounts = await _context.Set<Ticket>()
                 .Where(t => t.DoctorId == doctorId)
                 .GroupBy(t => t.Status)
@@ -60,7 +54,6 @@ namespace TicketsServies
                 TotalTickets = newCount + inProgressCount + closedCount
             };
 
-            // Cache for 5 minutes
             _cache.Set(cacheKey, stats, TimeSpan.FromMinutes(5));
 
             return stats;
@@ -73,7 +66,6 @@ namespace TicketsServies
             if (_cache.TryGetValue(cacheKey, out IEnumerable<DoctorSubjectDto>? cachedSubjects))
                 return cachedSubjects!;
 
-            // ✅ Single query instead of N+1
             var doctorSubjects = await _context.Set<DoctorSubject>()
                 .Where(ds => ds.DoctorId == doctorId)
                 .Include(ds => ds.Subject)
@@ -83,12 +75,12 @@ namespace TicketsServies
                     SubjectName = ds.Subject.Name,
                     Level = ds.Subject.Level,
                     Term = ds.Subject.Term,
+                    Program = ds.Subject.Program, // ✅ FIX: كان ناقص
                     TotalTickets = _context.Set<Ticket>()
                         .Count(t => t.DoctorId == doctorId && t.SubjectId == ds.SubjectId)
                 })
                 .ToListAsync();
 
-            // Cache for 10 minutes
             _cache.Set(cacheKey, doctorSubjects, TimeSpan.FromMinutes(10));
 
             return doctorSubjects;

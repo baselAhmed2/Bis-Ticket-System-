@@ -7,6 +7,7 @@ namespace TicketsDomain.Models
         public string Name { get; set; }
         public int Level { get; set; }
         public int Term { get; set; }
+        public string Program { get; set; } // BIS, FMI, CS
 
         // Navigation
         public ICollection<DoctorSubject> DoctorSubjects { get; set; }

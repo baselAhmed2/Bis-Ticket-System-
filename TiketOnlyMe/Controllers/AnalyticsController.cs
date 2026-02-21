@@ -6,7 +6,7 @@ namespace TiketApp.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "SuperAdmin,SubAdmin")] // ✅ FIX: كان "Admin"
     public class AnalyticsController : ControllerBase
     {
         private readonly IAnalyticsService _analyticsService;

@@ -37,6 +37,10 @@ namespace TicketsPersistence.Configurations
             builder.Property(t => t.Term)
                 .IsRequired();
 
+            builder.Property(t => t.Program)
+                .IsRequired()
+                .HasMaxLength(10);
+
             builder.Property(t => t.Status)
                 .IsRequired()
                 .HasDefaultValue(TicketsShared.Enums.TicketStatus.New);
