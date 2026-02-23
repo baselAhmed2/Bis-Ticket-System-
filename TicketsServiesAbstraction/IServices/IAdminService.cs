@@ -30,5 +30,13 @@ namespace TicketsServiesAbstraction.IServices
         Task<PagedResultDto<TicketDto>> GetHighPriorityTicketsPagedAsync(
             int pageIndex, int pageSize, string? program = null);
         Task<bool> MarkTicketAsHighPriorityAsync(string ticketId, bool isHighPriority);
+
+        // ✅ NEW: Admin Messages
+        Task<PagedResultDto<AdminMessageDto>> GetAdminMessagesAsync(
+            string adminId, int pageIndex, int pageSize);
+
+        // ✅ NEW: Admin assigns themselves to a subject
+        Task<bool> AssignAdminToSubjectAsync(string adminId, string subjectId);
+        Task<bool> RemoveAdminFromSubjectAsync(string adminId, string subjectId);
     }
 }

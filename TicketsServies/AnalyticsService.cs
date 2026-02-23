@@ -26,8 +26,6 @@ namespace TicketsServies
             if (_cache.TryGetValue(cacheKey, out AdminAnalyticsDto? cachedAnalytics))
                 return cachedAnalytics!;
 
-            // ✅ All aggregations in SQL — no loading all tickets to memory
-
             // Tickets by Level
             var ticketsByLevel = await _context.Set<Ticket>()
                 .GroupBy(t => t.Level)
@@ -43,13 +41,13 @@ namespace TicketsServies
             // Total Tickets
             var totalTickets = await _context.Set<Ticket>().CountAsync();
 
-            // Top Doctors — single query with Join
+            // Top Doctors — no level filter for general analytics
             var topDoctors = await GetDoctorsByTicketCountAsync(10);
 
-            // Top Subjects — single query with Join
+            // Top Subjects — no level filter for general analytics
             var topSubjects = await GetSubjectsByTicketCountAsync(10);
 
-            // User Counts — batch role loading
+            // User Counts
             var roleCounts = await _context.Set<IdentityUserRole<string>>()
                 .Join(_context.Set<IdentityRole>(),
                     ur => ur.RoleId,
@@ -81,16 +79,20 @@ namespace TicketsServies
                     .FirstOrDefault(x => x.Role == "Student")?.Count ?? 0
             };
 
-            // Cache for 10 minutes
             _cache.Set(cacheKey, analytics, TimeSpan.FromMinutes(10));
 
             return analytics;
         }
 
-        public async Task<List<DoctorTicketCountDto>> GetDoctorsByTicketCountAsync(int topCount = 10)
+        public async Task<List<DoctorTicketCountDto>> GetDoctorsByTicketCountAsync(
+            int topCount = 10, int? level = null)
         {
-            // ✅ Single SQL query with Join — no N+1
-            return await _context.Set<Ticket>()
+            var query = _context.Set<Ticket>().AsQueryable();
+
+            if (level.HasValue)
+                query = query.Where(t => t.Level == level.Value);
+
+            return await query
                 .GroupBy(t => new { t.DoctorId, t.Doctor.Name })
                 .Select(g => new DoctorTicketCountDto
                 {
@@ -106,10 +108,15 @@ namespace TicketsServies
                 .ToListAsync();
         }
 
-        public async Task<List<SubjectTicketCountDto>> GetSubjectsByTicketCountAsync(int topCount = 10)
+        public async Task<List<SubjectTicketCountDto>> GetSubjectsByTicketCountAsync(
+            int topCount = 10, int? level = null)
         {
-            // ✅ Single SQL query with Join — no N+1
-            return await _context.Set<Ticket>()
+            var query = _context.Set<Ticket>().AsQueryable();
+
+            if (level.HasValue)
+                query = query.Where(t => t.Level == level.Value);
+
+            return await query
                 .GroupBy(t => new { t.SubjectId, t.Subject.Name, t.Subject.Level })
                 .Select(g => new SubjectTicketCountDto
                 {

@@ -6,7 +6,7 @@ namespace TiketApp.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "SuperAdmin,SubAdmin")] // ✅ FIX: كان "Admin"
+    [Authorize(Roles = "SuperAdmin,SubAdmin")]
     public class AnalyticsController : ControllerBase
     {
         private readonly IAnalyticsService _analyticsService;
@@ -24,16 +24,20 @@ namespace TiketApp.Api.Controllers
         }
 
         [HttpGet("top-doctors")]
-        public async Task<IActionResult> GetTopDoctors([FromQuery] int count = 10)
+        public async Task<IActionResult> GetTopDoctors(
+            [FromQuery] int count = 10,
+            [FromQuery] int? level = null)
         {
-            var doctors = await _analyticsService.GetDoctorsByTicketCountAsync(count);
+            var doctors = await _analyticsService.GetDoctorsByTicketCountAsync(count, level);
             return Ok(doctors);
         }
 
         [HttpGet("top-subjects")]
-        public async Task<IActionResult> GetTopSubjects([FromQuery] int count = 10)
+        public async Task<IActionResult> GetTopSubjects(
+            [FromQuery] int count = 10,
+            [FromQuery] int? level = null)
         {
-            var subjects = await _analyticsService.GetSubjectsByTicketCountAsync(count);
+            var subjects = await _analyticsService.GetSubjectsByTicketCountAsync(count, level);
             return Ok(subjects);
         }
     }

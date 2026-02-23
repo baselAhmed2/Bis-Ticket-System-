@@ -25,7 +25,7 @@ namespace TiketApp.Api.Controllers
         private string? GetCurrentProgram()
         {
             var role = User.FindFirstValue(ClaimTypes.Role);
-            if (role == "SuperAdmin") return null; // يشوف كل حاجة
+            if (role == "SuperAdmin") return null;
 
             return User.FindFirstValue("Program");
         }
@@ -167,3 +167,4 @@ namespace TiketApp.Api.Controllers
         }
     }
 }
+

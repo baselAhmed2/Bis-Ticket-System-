@@ -106,11 +106,23 @@ namespace TiketApp.Api.Controllers
         }
 
         [HttpPost("reply")]
-        [Authorize(Roles = "Doctor,SuperAdmin,SubAdmin")] // ✅ FIX: كان "Doctor,Admin"
+        [Authorize(Roles = "Student,Doctor,SuperAdmin,SubAdmin")]
         public async Task<IActionResult> Reply([FromBody] ReplyToTicketDto dto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var userRole = User.FindFirstValue(ClaimTypes.Role)!;
+
+            // ✅ الطالب يرد بس على التذاكر بتاعته
+            if (userRole == "Student")
+            {
+                var ticket = await _ticketService.GetByIdAsync(dto.TicketId);
+                if (ticket == null)
+                    return NotFound(new { message = "Ticket not found" });
+
+                if (ticket.StudentId != userId)
+                    return Forbid();
+            }
+
             var result = await _ticketService.ReplyAsync(dto, userId, userRole);
 
             if (!result)

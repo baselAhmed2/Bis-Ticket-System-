@@ -18,7 +18,7 @@ namespace TicketsShared.DTO.Tickets
         [Range(1, 2)]
         public int Term { get; set; }
 
-        [Range(1, 20)]
+        [Range(1, 35)]
         public int GroupNumber { get; set; }
 
         [Required]

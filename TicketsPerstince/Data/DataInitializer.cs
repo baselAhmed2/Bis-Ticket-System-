@@ -39,6 +39,7 @@ namespace TicketsPerstince.Data
 
         // =====================
         // 1️⃣ Seed Roles
+
         // =====================
         private async Task SeedRolesAsync()
         {

@@ -227,6 +227,94 @@ namespace TicketsServies
         }
 
         // =====================
+        // Admin Subject Assignment (NEW)
+        // =====================
+        public async Task<bool> AssignAdminToSubjectAsync(string adminId, string subjectId)
+        {
+            // تأكد إن مفيش ربط موجود أصلاً
+            var exists = await _context.Set<DoctorSubject>()
+                .AnyAsync(ds => ds.DoctorId == adminId && ds.SubjectId == subjectId);
+
+            if (exists) return true; // مربوط فعلاً
+
+            _context.Set<DoctorSubject>().Add(new DoctorSubject
+            {
+                DoctorId = adminId,
+                SubjectId = subjectId
+            });
+
+            _cache.Remove($"doctor_subjects_{adminId}");
+            _cache.Remove("all_subjects");
+
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> RemoveAdminFromSubjectAsync(string adminId, string subjectId)
+        {
+            var record = await _context.Set<DoctorSubject>()
+                .FirstOrDefaultAsync(ds => ds.DoctorId == adminId && ds.SubjectId == subjectId);
+
+            if (record == null) return false;
+
+            _context.Set<DoctorSubject>().Remove(record);
+
+            _cache.Remove($"doctor_subjects_{adminId}");
+            _cache.Remove("all_subjects");
+
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        // =====================
+        // Admin Messages (NEW)
+        // =====================
+        public async Task<PagedResultDto<AdminMessageDto>> GetAdminMessagesAsync(
+            string adminId, int pageIndex, int pageSize)
+        {
+            // الرسائل اللي في التذاكر اللي الأدمن رد عليها
+            // (التذاكر اللي فيها رسالة من الأدمن ده)
+            var ticketIdsWithAdminMessages = _context.Set<Message>()
+                .Where(m => m.SenderId == adminId)
+                .Select(m => m.TicketId)
+                .Distinct();
+
+            var query = _context.Set<Message>()
+                .Where(m => ticketIdsWithAdminMessages.Contains(m.TicketId))
+                .Include(m => m.Sender)
+                .Include(m => m.Ticket)
+                    .ThenInclude(t => t.Student)
+                .Include(m => m.Ticket)
+                    .ThenInclude(t => t.Doctor)
+                .OrderByDescending(m => m.SentAt);
+
+            var totalCount = await query.CountAsync();
+
+            var messages = await query
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .Select(m => new AdminMessageDto
+                {
+                    MessageId = m.Id,
+                    Body = m.Body,
+                    SentAt = m.SentAt,
+                    SenderName = m.Sender.Name,
+                    SenderId = m.SenderId,
+                    TicketId = m.TicketId,
+                    TicketTitle = m.Ticket.Title,
+                    StudentName = m.Ticket.Student.Name,
+                    DoctorName = m.Ticket.Doctor.Name
+                })
+                .ToListAsync();
+
+            return new PagedResultDto<AdminMessageDto>
+            {
+                Data = messages,
+                TotalCount = totalCount,
+                PageIndex = pageIndex,
+                PageSize = pageSize
+            };
+        }
+
+        // =====================
         // Ticket Monitoring
         // =====================
         public async Task<PagedResultDto<TicketDto>> GetAllTicketsFilteredAsync(TicketFilterDto filter)
