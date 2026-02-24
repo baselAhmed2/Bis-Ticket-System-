@@ -17,7 +17,7 @@ namespace TiketOnlyMe
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // ✅ Limit request body size (1MB)
+            //// ✅ Limit request body size (1MB)
             builder.WebHost.ConfigureKestrel(options =>
             {
                 options.Limits.MaxRequestBodySize = 1_048_576; // 1MB
@@ -60,26 +60,26 @@ namespace TiketOnlyMe
             var app = builder.Build();
 
             // Database Seeding
-            using (var scope = app.Services.CreateScope())
-            {
-                var initializer = scope.ServiceProvider
-                    .GetRequiredService<IDataInitializer>();
+            //using (var scope = app.Services.CreateScope())
+            //{
+            //    var initializer = scope.ServiceProvider
+            //        .GetRequiredService<IDataInitializer>();
 
-                await initializer.InitializeAsync();
-            }
+            //    await initializer.InitializeAsync();
+            //}
 
             // ✅ Security Headers
             app.UseMiddleware<SecurityHeadersMiddleware>();
 
-            // Global Exception Handling
+            //// Global Exception Handling
             app.UseMiddleware<GlobalExceptionMiddleware>();
 
             // Swagger
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
+            //if (app.Environment.IsDevelopment())
+            //{
+            app.UseSwagger();
                 app.UseSwaggerUI();
-            }
+            //}
 
             app.UseHttpsRedirection();
 

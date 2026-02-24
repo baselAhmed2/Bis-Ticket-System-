@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using TicketsDomain.IRepositories;
@@ -35,7 +35,7 @@ namespace TicketsServies
         // User Management
         // =====================
         public async Task<PagedResultDto<UserDto>> GetAllUsersAsync(
-            int pageIndex, int pageSize, string? searchTerm = null, string? program = null)
+            int pageIndex, int pageSize, string? searchTerm = null, string? program = null, string? role = null)
         {
             var query = _userManager.Users.AsQueryable();
 
@@ -43,6 +43,33 @@ namespace TicketsServies
             if (!string.IsNullOrEmpty(program))
             {
                 query = query.Where(u => u.Program == program);
+            }
+
+            // ✅ Filter by Role على مستوى الداتابيز
+            if (!string.IsNullOrEmpty(role))
+            {
+                var roleEntity = await _context.Set<IdentityRole>()
+                    .FirstOrDefaultAsync(r => r.Name == role);
+
+                if (roleEntity != null)
+                {
+                    var userIdsInRole = _context.Set<IdentityUserRole<string>>()
+                        .Where(ur => ur.RoleId == roleEntity.Id)
+                        .Select(ur => ur.UserId);
+
+                    query = query.Where(u => userIdsInRole.Contains(u.Id));
+                }
+                else
+                {
+                    // الدور مش موجود — ارجع نتيجة فاضية
+                    return new PagedResultDto<UserDto>
+                    {
+                        Data = [],
+                        TotalCount = 0,
+                        PageIndex = pageIndex,
+                        PageSize = pageSize
+                    };
+                }
             }
 
             // Apply Search
@@ -224,6 +251,37 @@ namespace TicketsServies
             _cache.Set(cacheKey, subjectDtos, TimeSpan.FromHours(1));
 
             return subjectDtos;
+        }
+
+        public async Task<SubjectDto> CreateSubjectAsync(CreateSubjectDto dto)
+        {
+            var exists = await _context.Set<Subject>().AnyAsync(s => s.Id == dto.Id);
+            if (exists)
+                throw new InvalidOperationException($"Subject with ID '{dto.Id}' already exists.");
+
+            var subject = new Subject
+            {
+                Id = dto.Id,
+                Name = dto.Name,
+                Level = dto.Level,
+                Term = dto.Term,
+                Program = dto.Program
+            };
+
+            _context.Set<Subject>().Add(subject);
+            await _context.SaveChangesAsync();
+
+            _cache.Remove("all_subjects");
+            _cache.Remove($"subjects_{dto.Program}");
+
+            return new SubjectDto
+            {
+                Id = subject.Id,
+                Name = subject.Name,
+                Level = subject.Level,
+                Term = subject.Term,
+                Program = subject.Program
+            };
         }
 
         // =====================

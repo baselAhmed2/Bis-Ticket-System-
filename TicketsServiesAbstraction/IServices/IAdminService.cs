@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +13,7 @@ namespace TicketsServiesAbstraction.IServices
     {
         // User Management
         Task<PagedResultDto<UserDto>> GetAllUsersAsync(
-            int pageIndex, int pageSize, string? searchTerm = null, string? program = null);
+            int pageIndex, int pageSize, string? searchTerm = null, string? program = null, string? role = null);
         Task<UserDto?> GetUserByIdAsync(string userId);
         Task<UserDto> CreateUserAsync(CreateUserDto dto);
         Task<bool> DeleteUserAsync(string userId);
@@ -22,7 +22,7 @@ namespace TicketsServiesAbstraction.IServices
         Task<bool> AssignSubjectsToDoctorAsync(AssignSubjectsDto dto);
         Task<IEnumerable<SubjectDto>> GetDoctorSubjectsAsync(string doctorId);
         Task<IEnumerable<SubjectDto>> GetAllSubjectsAsync(string? program = null);
-
+        Task<SubjectDto> CreateSubjectAsync(CreateSubjectDto dto);
 
         // Ticket Monitoring
         Task<PagedResultDto<TicketDto>> GetAllTicketsFilteredAsync(TicketFilterDto filter);

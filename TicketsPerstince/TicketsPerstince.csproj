@@ -19,7 +19,6 @@
 
   <ItemGroup>
     <Folder Include="Data\DataSeeding\Json\" />
-    <Folder Include="Migrations\" />
   </ItemGroup>
 
 </Project>

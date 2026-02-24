@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using TicketsServiesAbstraction.IServices;
@@ -37,10 +37,11 @@ namespace TiketApp.Api.Controllers
         public async Task<IActionResult> GetAllUsers(
             [FromQuery] int pageIndex = 1,
             [FromQuery] int pageSize = 10,
-            [FromQuery] string? searchTerm = null)
+            [FromQuery] string? searchTerm = null,
+            [FromQuery] string? role = null)
         {
             var program = GetCurrentProgram();
-            var users = await _adminService.GetAllUsersAsync(pageIndex, pageSize, searchTerm, program);
+            var users = await _adminService.GetAllUsersAsync(pageIndex, pageSize, searchTerm, program, role);
             return Ok(users);
         }
 
@@ -126,6 +127,24 @@ namespace TiketApp.Api.Controllers
             var program = GetCurrentProgram();
             var subjects = await _adminService.GetAllSubjectsAsync(program);
             return Ok(subjects);
+        }
+
+        [HttpPost("subjects")]
+        public async Task<IActionResult> CreateSubject([FromBody] CreateSubjectDto dto)
+        {
+            var program = GetCurrentProgram();
+            if (program != null && dto.Program != program)
+                return Forbid();
+
+            try
+            {
+                var subject = await _adminService.CreateSubjectAsync(dto);
+                return CreatedAtAction(nameof(GetAllSubjects), null, subject);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         // =====================
