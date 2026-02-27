@@ -187,6 +187,10 @@ namespace TicketsServies
                     SubjectId = subjectId
                 }).ToList();
 
+            // لو مفيش تغيير — نجاح بالفعل
+            if (toRemove.Count == 0 && toAdd.Count == 0)
+                return true;
+
             if (toRemove.Count > 0)
                 _context.Set<DoctorSubject>().RemoveRange(toRemove);
 
@@ -196,8 +200,10 @@ namespace TicketsServies
             // Invalidate caches
             _cache.Remove("all_subjects");
             _cache.Remove($"doctor_subjects_{dto.DoctorId}");
+            _cache.Remove($"doctor_subjects_detail_{dto.DoctorId}");
 
-            return await _context.SaveChangesAsync() > 0;
+            await _context.SaveChangesAsync();
+            return true;
         }
 
         public async Task<IEnumerable<SubjectDto>> GetDoctorSubjectsAsync(string doctorId)
@@ -457,6 +463,33 @@ namespace TicketsServies
             ticket.IsHighPriority = isHighPriority;
             await _unitOfWork.GetRepository<Ticket, string>().UpdateAsync(ticket);
             return await _unitOfWork.SaveChangesAsync() > 0;
+        }
+
+        /// <summary>
+        /// SuperAdmin only: ينهي الترم — يحذف كل التذاكر والرسائل ويصفر العدادات
+        /// </summary>
+        public async Task<int> DeleteAllTicketsAsync()
+        {
+            var doctorIds = await _context.Set<Ticket>()
+                .Select(t => t.DoctorId)
+                .Distinct()
+                .ToListAsync();
+
+            var tickets = await _context.Set<Ticket>().ToListAsync();
+            var count = tickets.Count;
+            if (count == 0) return 0;
+
+            _context.Set<Ticket>().RemoveRange(tickets);
+            await _context.SaveChangesAsync();
+
+            _cache.Remove("admin_analytics");
+            foreach (var id in doctorIds)
+            {
+                _cache.Remove($"doctor_stats_{id}");
+                _cache.Remove($"doctor_subjects_detail_{id}");
+            }
+
+            return count;
         }
 
         // =====================

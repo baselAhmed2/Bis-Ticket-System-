@@ -38,5 +38,10 @@ namespace TicketsServiesAbstraction.IServices
         // ✅ NEW: Admin assigns themselves to a subject
         Task<bool> AssignAdminToSubjectAsync(string adminId, string subjectId);
         Task<bool> RemoveAdminFromSubjectAsync(string adminId, string subjectId);
+
+        /// <summary>
+        /// SuperAdmin only: ينهي الترم — يحذف كل التذاكر ويصفر العدادات
+        /// </summary>
+        Task<int> DeleteAllTicketsAsync();
     }
 }

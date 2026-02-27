@@ -17,9 +17,9 @@ namespace TiketApp.Api.Controllers
         }
 
         [HttpGet("admin")]
-        public async Task<IActionResult> GetAdminAnalytics()
+        public async Task<IActionResult> GetAdminAnalytics([FromQuery] int? period = null)
         {
-            var analytics = await _analyticsService.GetAdminAnalyticsAsync();
+            var analytics = await _analyticsService.GetAdminAnalyticsAsync(period);
             return Ok(analytics);
         }
 
@@ -39,22 +39,6 @@ namespace TiketApp.Api.Controllers
         {
             var subjects = await _analyticsService.GetSubjectsByTicketCountAsync(count, level);
             return Ok(subjects);
-        }
-
-        [HttpGet("ticket-counts")]
-        public async Task<IActionResult> GetTicketCounts(
-            [FromQuery] string? program = null,
-            [FromQuery] int? level = null,
-            [FromQuery] string? period = null,
-            [FromQuery] string? subjectId = null,
-            [FromQuery] string? doctorId = null,
-            [FromQuery] DateTime? from = null,
-            [FromQuery] DateTime? to = null)
-        {
-            var counts = await _analyticsService.GetTicketCountsAsync(
-                program, level, period, subjectId, doctorId, from, to);
-
-            return Ok(counts);
         }
     }
 }

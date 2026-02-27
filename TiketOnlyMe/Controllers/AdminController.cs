@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using TicketsServiesAbstraction.IServices;
 using TicketsShared.DTO.Admin;
@@ -14,12 +15,14 @@ namespace TiketApp.Api.Controllers
         private readonly IAdminService _adminService;
         private readonly ITicketService _ticketService;
         private readonly IDoctorService _doctorService;
+        private readonly DbContext _context;
 
-        public AdminController(IAdminService adminService, ITicketService ticketService, IDoctorService doctorService)
+        public AdminController(IAdminService adminService, ITicketService ticketService, IDoctorService doctorService, DbContext context)
         {
             _adminService = adminService;
             _ticketService = ticketService;
             _doctorService = doctorService;
+            _context = context;
         }
 
         /// <summary>
@@ -152,6 +155,20 @@ namespace TiketApp.Api.Controllers
         }
 
         /// <summary>
+        /// المواد اللي الأدمن/SubAdmin مدرس فيها (مثل Doctor My Courses)
+        /// </summary>
+        [HttpGet("my-subjects")]
+        public async Task<IActionResult> GetMySubjects()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var subjects = await _doctorService.GetDoctorSubjectsAsync(userId);
+            return Ok(subjects);
+        }
+
+        /// <summary>
         /// Admin/SubAdmin يضيف نفسه كمدرس لمادة (يظهر في قائمة الدكاترة عند إنشاء التذكرة)
         /// </summary>
         [HttpPost("subjects/{subjectId}/assign-self")]
@@ -191,19 +208,69 @@ namespace TiketApp.Api.Controllers
         }
 
         /// <summary>
-        /// تذاكر المواد اللي الأدمن مدرس فيها (عندما يكون Admin دكتور أيضاً)
+        /// تذاكر المواد اللي الأدمن مدرس فيها (بناءً على جدول DoctorSubject)
         /// </summary>
         [HttpGet("my-doctor-tickets")]
         public async Task<IActionResult> GetMyDoctorTickets(
             [FromQuery] int pageIndex = 1,
-            [FromQuery] int pageSize = 10)
+            [FromQuery] int pageSize = 10,
+            [FromQuery] int? status = null)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
-            var tickets = await _ticketService.GetByDoctorIdPagedAsync(userId, pageIndex, pageSize);
-            return Ok(tickets);
+            // جيب الـ subjects اللي الأدمن مضاف عليها
+            var mySubjectIds = await _context.Set<TicketsDomain.Models.DoctorSubject>()
+                .Where(ds => ds.DoctorId == userId)
+                .Select(ds => ds.SubjectId)
+                .ToListAsync();
+
+            if (mySubjectIds.Count == 0)
+                return Ok(new { data = Array.Empty<object>(), totalCount = 0, pageIndex, pageSize });
+
+            // جيب التذاكر اللي subjectId بتاعها في المواد دي
+            var query = _context.Set<TicketsDomain.Models.Ticket>()
+                .Include(t => t.Student)
+                .Include(t => t.Doctor)
+                .Include(t => t.Subject)
+                .Include(t => t.Messages).ThenInclude(m => m.Sender)
+                .Where(t => mySubjectIds.Contains(t.SubjectId));
+
+            if (status.HasValue)
+                query = query.Where(t => (int)t.Status == status.Value);
+
+            query = query.OrderByDescending(t => t.CreatedAt);
+
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            var tickets = await query
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var dto = tickets.Select(t => new
+            {
+                id = t.Id,
+                title = t.Title,
+                body = t.Body,
+                level = t.Level,
+                term = t.Term,
+                groupNumber = t.GroupNumber,
+                status = t.Status,
+                isHighPriority = t.IsHighPriority,
+                createdAt = t.CreatedAt,
+                program = t.Program,
+                studentId = t.StudentId,
+                studentName = t.Student?.Name ?? "",
+                doctorId = t.DoctorId,
+                doctorName = t.Doctor?.Name ?? "",
+                subjectId = t.SubjectId,
+                subjectName = t.Subject?.Name ?? "",
+            });
+
+            return Ok(new { data = dto, totalCount, totalPages, pageIndex, pageSize });
         }
 
         /// <summary>
@@ -256,6 +323,20 @@ namespace TiketApp.Api.Controllers
                 return NotFound(new { message = "Ticket not found" });
 
             return Ok(new { message = "Ticket priority updated" });
+        }
+
+        /// <summary>
+        /// SuperAdmin only: ينهي الترم — يحذف كل التذاكر ويصفر عدادات الداش بورد
+        /// </summary>
+        [HttpPost("end-term")]
+        public async Task<IActionResult> EndTerm()
+        {
+            var role = User.FindFirstValue(ClaimTypes.Role);
+            if (role != "SuperAdmin")
+                return Forbid();
+
+            var deletedCount = await _adminService.DeleteAllTicketsAsync();
+            return Ok(new { message = "Term ended successfully. All tickets have been cleared.", deletedCount });
         }
     }
 }
