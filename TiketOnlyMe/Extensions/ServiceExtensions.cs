@@ -48,7 +48,7 @@ namespace TiketApp.Api.Extensions
 
                 // ✅ Lockout بعد محاولات فاشلة
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
-                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Lockout.MaxFailedAccessAttempts = 10;
                 options.Lockout.AllowedForNewUsers = true;
             })
             .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -153,7 +153,7 @@ namespace TiketApp.Api.Extensions
                 // ✅ Login — حماية خاصة من Brute Force
                 options.AddFixedWindowLimiter("login", limiterOptions =>
                 {
-                    limiterOptions.PermitLimit = 5;               // 5 محاولات
+                    limiterOptions.PermitLimit = 10;          // 5 محاولات
                     limiterOptions.Window = TimeSpan.FromMinutes(5); // كل 5 دقايق
                     limiterOptions.QueueLimit = 0;
                 });

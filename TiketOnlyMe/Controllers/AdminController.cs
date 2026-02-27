@@ -12,10 +12,14 @@ namespace TiketApp.Api.Controllers
     public class AdminController : ControllerBase
     {
         private readonly IAdminService _adminService;
+        private readonly ITicketService _ticketService;
+        private readonly IDoctorService _doctorService;
 
-        public AdminController(IAdminService adminService)
+        public AdminController(IAdminService adminService, ITicketService ticketService, IDoctorService doctorService)
         {
             _adminService = adminService;
+            _ticketService = ticketService;
+            _doctorService = doctorService;
         }
 
         /// <summary>
@@ -145,6 +149,75 @@ namespace TiketApp.Api.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
+        }
+
+        /// <summary>
+        /// Admin/SubAdmin يضيف نفسه كمدرس لمادة (يظهر في قائمة الدكاترة عند إنشاء التذكرة)
+        /// </summary>
+        [HttpPost("subjects/{subjectId}/assign-self")]
+        public async Task<IActionResult> AssignSelfToSubject(string subjectId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var subject = await _adminService.GetAllSubjectsAsync(GetCurrentProgram());
+            var sub = subject.FirstOrDefault(s => s.Id == subjectId);
+            if (sub == null)
+                return NotFound(new { message = "Subject not found" });
+
+            var program = GetCurrentProgram();
+            if (program != null && sub.Program != program)
+                return Forbid();
+
+            var result = await _adminService.AssignAdminToSubjectAsync(userId, subjectId);
+            return Ok(new { message = "Assigned successfully" });
+        }
+
+        /// <summary>
+        /// Admin/SubAdmin يزيل نفسه من مادة
+        /// </summary>
+        [HttpDelete("subjects/{subjectId}/unassign-self")]
+        public async Task<IActionResult> UnassignSelfFromSubject(string subjectId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var result = await _adminService.RemoveAdminFromSubjectAsync(userId, subjectId);
+            if (!result)
+                return NotFound(new { message = "Assignment not found" });
+            return Ok(new { message = "Unassigned successfully" });
+        }
+
+        /// <summary>
+        /// تذاكر المواد اللي الأدمن مدرس فيها (عندما يكون Admin دكتور أيضاً)
+        /// </summary>
+        [HttpGet("my-doctor-tickets")]
+        public async Task<IActionResult> GetMyDoctorTickets(
+            [FromQuery] int pageIndex = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var tickets = await _ticketService.GetByDoctorIdPagedAsync(userId, pageIndex, pageSize);
+            return Ok(tickets);
+        }
+
+        /// <summary>
+        /// إحصائيات تذاكر المواد اللي الأدمن مدرس فيها
+        /// </summary>
+        [HttpGet("my-doctor-stats")]
+        public async Task<IActionResult> GetMyDoctorStats()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var stats = await _doctorService.GetDoctorStatsAsync(userId);
+            return Ok(stats);
         }
 
         // =====================

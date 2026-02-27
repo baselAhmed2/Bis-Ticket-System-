@@ -194,6 +194,10 @@ namespace TicketsPerstince.Data
                 if (result.Succeeded)
                 {
                     await _userManager.AddToRoleAsync(admin, "SubAdmin");
+                    // Give SubAdmin the Doctor role as well so they can be assigned to subjects
+                    if (!await _roleManager.RoleExistsAsync("Doctor")) continue;
+                        await _roleManager.CreateAsync(new IdentityRole("Doctor"));
+                    await _userManager.AddToRoleAsync(admin, "Doctor");
                 }
                 else
                 {
@@ -278,9 +282,3 @@ namespace TicketsPerstince.Data
         public required List<string> Subjects { get; set; }
     }
 }
-// في DoctorService — عند جلب المواد:
-// الفلترة بتحصل تلقائياً عبر DoctorSubjects (الدكتور مربوط بمواد محددة)
-// ✅ ده safe — مفيش مشكلة هنا
-
-// في TicketService — عند إنشاء تذكرة:
-// ⚠️ لازم تحط Program تلقائياً

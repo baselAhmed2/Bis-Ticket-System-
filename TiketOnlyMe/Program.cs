@@ -59,7 +59,8 @@ namespace TiketOnlyMe
 
             var app = builder.Build();
 
-            // Database Seeding
+            //Database Seeding
+
             //using (var scope = app.Services.CreateScope())
             //{
             //    var initializer = scope.ServiceProvider

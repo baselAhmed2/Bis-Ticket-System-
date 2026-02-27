@@ -174,16 +174,24 @@ namespace TicketsServies
                 .Where(ds => ds.DoctorId == dto.DoctorId)
                 .ToListAsync();
 
-            _context.Set<DoctorSubject>().RemoveRange(existing);
+            var existingSubjectIds = existing.Select(ds => ds.SubjectId).ToHashSet();
+            var newSubjectIds = dto.SubjectIds.ToHashSet();
 
-            foreach (var subjectId in dto.SubjectIds)
-            {
-                _context.Set<DoctorSubject>().Add(new DoctorSubject
+            // المواد التي يجب حذفها (موجودة في القديم وليست في الجديد)
+            var toRemove = existing.Where(ds => !newSubjectIds.Contains(ds.SubjectId)).ToList();
+            // المواد التي يجب إضافتها (موجودة في الجديد وليست في القديم)
+            var toAdd = newSubjectIds.Except(existingSubjectIds)
+                .Select(subjectId => new DoctorSubject
                 {
                     DoctorId = dto.DoctorId,
                     SubjectId = subjectId
-                });
-            }
+                }).ToList();
+
+            if (toRemove.Count > 0)
+                _context.Set<DoctorSubject>().RemoveRange(toRemove);
+
+            if (toAdd.Count > 0)
+                await _context.Set<DoctorSubject>().AddRangeAsync(toAdd);
 
             // Invalidate caches
             _cache.Remove("all_subjects");
@@ -337,18 +345,7 @@ namespace TicketsServies
 
             var query = _context.Set<Message>()
                 .Where(m => ticketIdsWithAdminMessages.Contains(m.TicketId))
-                .Include(m => m.Sender)
-                .Include(m => m.Ticket)
-                    .ThenInclude(t => t.Student)
-                .Include(m => m.Ticket)
-                    .ThenInclude(t => t.Doctor)
-                .OrderByDescending(m => m.SentAt);
-
-            var totalCount = await query.CountAsync();
-
-            var messages = await query
-                .Skip((pageIndex - 1) * pageSize)
-                .Take(pageSize)
+                .OrderByDescending(m => m.SentAt)
                 .Select(m => new AdminMessageDto
                 {
                     MessageId = m.Id,
@@ -360,7 +357,13 @@ namespace TicketsServies
                     TicketTitle = m.Ticket.Title,
                     StudentName = m.Ticket.Student.Name,
                     DoctorName = m.Ticket.Doctor.Name
-                })
+                });
+
+            var totalCount = await query.CountAsync();
+
+            var messages = await query
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
             return new PagedResultDto<AdminMessageDto>

@@ -19,6 +19,95 @@ namespace TicketsServies
             _cache = cache;
         }
 
+        public async Task<TicketCountsDto> GetTicketCountsAsync(
+            string? program = null,
+            int? level = null,
+            string? period = null,
+            string? subjectId = null,
+            string? doctorId = null,
+            DateTime? from = null,
+            DateTime? to = null)
+        {
+            // Support easy human-friendly periods: "day", "week", "month", "3months", "year"
+            var now = DateTime.UtcNow;
+            if (!string.IsNullOrEmpty(period) && !from.HasValue && !to.HasValue)
+            {
+                switch (period.ToLower())
+                {
+                    case "day":
+                    case "24h":
+                        from = now.AddDays(-1);
+                        break;
+                    case "week":
+                    case "7d":
+                        from = now.AddDays(-7);
+                        break;
+                    case "month":
+                    case "30d":
+                        from = now.AddMonths(-1);
+                        break;
+                    case "3months":
+                    case "90d":
+                        from = now.AddMonths(-3);
+                        break;
+                    case "year":
+                    case "365d":
+                        from = now.AddYears(-1);
+                        break;
+                    default:
+                        // unsupported period — ignore
+                        break;
+                }
+                to = now;
+            }
+
+            var query = _context.Set<Ticket>().AsQueryable();
+
+            if (!string.IsNullOrEmpty(program))
+                query = query.Where(t => t.Program == program);
+
+            if (level.HasValue)
+                query = query.Where(t => t.Level == level.Value);
+
+
+            if (!string.IsNullOrEmpty(subjectId))
+                query = query.Where(t => t.SubjectId == subjectId);
+
+            if (!string.IsNullOrEmpty(doctorId))
+                query = query.Where(t => t.DoctorId == doctorId);
+
+            if (from.HasValue)
+                query = query.Where(t => t.CreatedAt >= from.Value);
+
+            if (to.HasValue)
+                query = query.Where(t => t.CreatedAt <= to.Value);
+
+            var total = await query.CountAsync();
+            var newCount = await query.CountAsync(t => t.Status == TicketStatus.New);
+            var inProgress = await query.CountAsync(t => t.Status == TicketStatus.InProgress);
+            var closed = await query.CountAsync(t => t.Status == TicketStatus.Closed);
+            var highPriority = await query.CountAsync(t => t.IsHighPriority);
+
+            // Replied tickets: have at least one message
+            var replied = await _context.Set<Ticket>()
+                .Where(t => query.Select(q => q.Id).Contains(t.Id))
+                .Where(t => t.Messages.Any())
+                .CountAsync();
+
+            var unreplied = total - replied;
+
+            return new TicketCountsDto
+            {
+                TotalTickets = total,
+                NewTickets = newCount,
+                InProgressTickets = inProgress,
+                ClosedTickets = closed,
+                HighPriorityTickets = highPriority,
+                RepliedTickets = replied,
+                UnrepliedTickets = unreplied
+            };
+        }
+
         public async Task<AdminAnalyticsDto> GetAdminAnalyticsAsync()
         {
             const string cacheKey = "admin_analytics";
