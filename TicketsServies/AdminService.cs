@@ -1,6 +1,14 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.AspNetCore.Http;
+using OfficeOpenXml;
+using System.IO.Compression;
 using TicketsDomain.IRepositories;
 using TicketsDomain.Models;
 using TicketsDomain.Specifications.TicketSpecs;
@@ -198,9 +206,9 @@ namespace TicketsServies
                 await _context.Set<DoctorSubject>().AddRangeAsync(toAdd);
 
             // Invalidate caches
-            _cache.Remove("all_subjects");
-            _cache.Remove($"doctor_subjects_{dto.DoctorId}");
-            _cache.Remove($"doctor_subjects_detail_{dto.DoctorId}");
+            _cache.Remove(CacheKeys.AllSubjects(null));
+            _cache.Remove(CacheKeys.DoctorSubjects(dto.DoctorId));
+            _cache.Remove(CacheKeys.DoctorSubjectsDetail(dto.DoctorId));
 
             await _context.SaveChangesAsync();
             return true;
@@ -285,8 +293,8 @@ namespace TicketsServies
             _context.Set<Subject>().Add(subject);
             await _context.SaveChangesAsync();
 
-            _cache.Remove("all_subjects");
-            _cache.Remove($"subjects_{dto.Program}");
+            _cache.Remove(CacheKeys.AllSubjects(null));
+            _cache.Remove(CacheKeys.AllSubjects(dto.Program));
 
             return new SubjectDto
             {
@@ -315,8 +323,8 @@ namespace TicketsServies
                 SubjectId = subjectId
             });
 
-            _cache.Remove($"doctor_subjects_{adminId}");
-            _cache.Remove("all_subjects");
+            _cache.Remove(CacheKeys.DoctorSubjects(adminId));
+            _cache.Remove(CacheKeys.AllSubjects(null));
 
             return await _context.SaveChangesAsync() > 0;
         }
@@ -490,6 +498,384 @@ namespace TicketsServies
             }
 
             return count;
+        }
+
+
+        // =====================
+        // Bulk Upload
+        // =====================
+        public async Task<BulkStudentUploadResultDto> BulkUploadStudentsAsync(IFormFile file)
+        {
+            var result = new BulkStudentUploadResultDto();
+
+            try
+            {
+                using var stream = new System.IO.MemoryStream();
+                await file.CopyToAsync(stream);
+                // Ensure stream is read from the beginning before passing to EPPlus
+                stream.Position = 0;
+
+                // Basic validation: non-empty and .xlsx extension
+                if (file.Length == 0 || stream.Length == 0)
+                {
+                    result.Errors.Add("Uploaded file is empty.");
+                    return result;
+                }
+
+                var ext = Path.GetExtension(file.FileName) ?? string.Empty;
+                // Accept .xlsx or .csv. If csv, we will parse it as text; if xlsx, use EPPlus.
+                if (!ext.Equals(".xlsx", StringComparison.OrdinalIgnoreCase) && !ext.Equals(".csv", StringComparison.OrdinalIgnoreCase))
+                {
+                    result.Errors.Add("Only .xlsx or .csv files are supported. Please provide a valid .xlsx or .csv file and try again.");
+                    return result;
+                }
+
+                // If CSV, parse as text without using EPPlus
+                if (ext.Equals(".csv", StringComparison.OrdinalIgnoreCase))
+                {
+                    stream.Position = 0;
+                    using var reader = new StreamReader(stream);
+                    var text = await reader.ReadToEndAsync();
+                    var lines = text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(l => l.Trim())
+                        .Where(l => !string.IsNullOrEmpty(l))
+                        .ToList();
+
+                    if (lines.Count <= 1)
+                    {
+                        result.Errors.Add("CSV file contains no data rows (only header or empty).");
+                        return result;
+                    }
+
+                    var headerCols = lines[0].Split(',').Select(h => h.Trim().ToLowerInvariant()).ToList();
+                    // Expect at least 3 columns: id, ssn, name in any order
+                    var idIndex = headerCols.FindIndex(h => h == "id");
+                    var ssnIndex = headerCols.FindIndex(h => h == "ssn");
+                    var nameIndex = headerCols.FindIndex(h => h == "name");
+
+                    if (idIndex < 0 || ssnIndex < 0 || nameIndex < 0)
+                    {
+                        result.Errors.Add("CSV header must include 'Id', 'SSN' and 'Name' columns.");
+                        return result;
+                    }
+
+                    var csvExistingStudents = await _userManager.GetUsersInRoleAsync("Student");
+                    var csvExistingSsnSet = new HashSet<string>(csvExistingStudents.Select(s => s.SSN ?? string.Empty));
+                    var csvExistingIdSet = new HashSet<string>(csvExistingStudents.Select(s => s.Id ?? string.Empty));
+
+                    var csvNewStudents = new List<ApplicationUser>();
+
+                    for (int i = 1; i < lines.Count; i++)
+                    {
+                        var row = lines[i];
+                        var cols = row.Split(',').Select(c => c.Trim().Trim('"')).ToArray();
+
+                        string id = cols.Length > idIndex ? cols[idIndex] : string.Empty;
+                        string ssn = cols.Length > ssnIndex ? cols[ssnIndex] : string.Empty;
+                        string name = cols.Length > nameIndex ? cols[nameIndex] : string.Empty;
+
+                        if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(ssn) || string.IsNullOrEmpty(name))
+                        {
+                            result.Skipped++;
+                            result.Errors.Add($"Row {i + 1}: Missing required data.");
+                            continue;
+                        }
+
+                        if (csvExistingSsnSet.Contains(ssn) || csvExistingIdSet.Contains(id))
+                        {
+                            result.Updated++;
+                            continue;
+                        }
+
+                        var newStudent = new ApplicationUser
+                        {
+                            Id = id,
+                            UserName = id,
+                            SSN = ssn,
+                            Name = name,
+                            Email = $"{id}@std.teebaa.edu.eg",
+                            EmailConfirmed = true,
+                            IsActive = true
+                        };
+
+                        csvNewStudents.Add(newStudent);
+                    }
+
+                    if (csvNewStudents.Any())
+                    {
+                        foreach (var st in csvNewStudents)
+                        {
+                            var createResult = await _userManager.CreateAsync(st, "Tb123456*");
+                            if (createResult.Succeeded)
+                            {
+                                await _userManager.AddToRoleAsync(st, "Student");
+                                result.Added++;
+                            }
+                            else
+                            {
+                                result.Skipped++;
+                                result.Errors.Add($"Failed to create user {st.Id}: {string.Join(", ", createResult.Errors.Select(e => e.Description))}");
+                            }
+                        }
+                    }
+
+                    return result;
+                }
+
+                // Quick integrity check: try opening the stream as a ZIP (xlsx is a zip archive)
+                try
+                {
+                    stream.Position = 0;
+                    using var zip = new ZipArchive(stream, ZipArchiveMode.Read, true);
+                    // Try to read first byte of each entry to detect truncated/corrupt blocks
+                    foreach (var entry in zip.Entries)
+                    {
+                        try
+                        {
+                            using var entryStream = entry.Open();
+                            var buffer = new byte[1];
+                            // Attempt to read; some legitimate small files might have empty entries but reading should not throw
+                            _ = entryStream.Read(buffer, 0, 1);
+                        }
+                        catch (Exception)
+                        {
+                            result.Errors.Add("Uploaded .xlsx appears to be corrupted (invalid ZIP entry). Try opening and re-saving the file in Excel and upload again.");
+                            return result;
+                        }
+                    }
+                    stream.Position = 0;
+                }
+                catch (InvalidDataException)
+                {
+                    result.Errors.Add("Uploaded .xlsx is not a valid ZIP archive or is corrupted. Please open and re-save as .xlsx and try again.");
+                    return result;
+                }
+                catch (Exception)
+                {
+                    // If Zip check fails unexpectedly, continue and let EPPlus produce a clearer error later
+                    stream.Position = 0;
+                }
+
+                // Ensure EPPlus license is set. Support both pre-8 and 8+ APIs via reflection.
+                try
+                {
+                    var excelPkgType = typeof(OfficeOpenXml.ExcelPackage);
+
+                    // Try new API: ExcelPackage.License (object) with a setter method
+                    var licenseProp = excelPkgType.GetProperty("License", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+                    if (licenseProp != null)
+                    {
+                        var licenseObj = licenseProp.GetValue(null);
+                        if (licenseObj != null)
+                        {
+                            var licenseObjType = licenseObj.GetType();
+                            var enumType = licenseObjType.Assembly.GetType("OfficeOpenXml.LicenseContext") ?? excelPkgType.Assembly.GetType("OfficeOpenXml.LicenseContext");
+                            if (enumType != null)
+                            {
+                                var nonCommercial = Enum.Parse(enumType, "NonCommercial");
+
+                                // Try methods on the license object
+                                var setMethod = licenseObjType.GetMethod("SetLicense", new[] { enumType })
+                                                ?? licenseObjType.GetMethod("SetLicenseContext", new[] { enumType });
+
+                                if (setMethod != null)
+                                {
+                                    setMethod.Invoke(licenseObj, new[] { nonCommercial });
+                                }
+                                else
+                                {
+                                    // Try property 'Context' or similar
+                                    var ctxProp = licenseObjType.GetProperty("Context", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+                                    if (ctxProp != null && ctxProp.CanWrite)
+                                        ctxProp.SetValue(licenseObj, nonCommercial);
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Fallback to older API: ExcelPackage.LicenseContext
+                        var lcProp = excelPkgType.GetProperty("LicenseContext", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+                        if (lcProp != null && lcProp.CanWrite)
+                        {
+                            var enumType = lcProp.PropertyType;
+                            var nonCommercial = Enum.Parse(enumType, "NonCommercial");
+                            lcProp.SetValue(null, nonCommercial);
+                        }
+                    }
+                }
+                catch
+                {
+                    // ignore and continue; if license isn't set correctly EPPlus will throw at runtime and we will capture that
+                }
+
+                try
+                {
+                    using var package = new OfficeOpenXml.ExcelPackage(stream);
+
+                    var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                    if (worksheet == null)
+                    {
+                        result.Errors.Add("Excel file is empty or formatted incorrectly (no worksheets found).");
+                        return result;
+                    }
+
+                    if (worksheet.Dimension == null)
+                    {
+                        result.Errors.Add("Excel worksheet appears empty (no used cells). Ensure the sheet has data starting from row 2.");
+                        return result;
+                    }
+
+                    int rowCountTemp = 0;
+                    // Try to get rows from Dimension, but fallback to scanning cells if Dimension access overflows or is unreliable
+                    try
+                    {
+                        if (worksheet.Dimension != null)
+                        {
+                            rowCountTemp = worksheet.Dimension.Rows;
+                        }
+                        else
+                        {
+                            // No dimension info; compute from non-empty cells
+                            rowCountTemp = worksheet.Cells
+                                .Where(c => c.Value != null && !string.IsNullOrEmpty(c.Value?.ToString()))
+                                .Select(c => c.Start.Row)
+                                .DefaultIfEmpty(0)
+                                .Max();
+                        }
+                    }
+                    catch (OverflowException)
+                    {
+                        // Fallback: compute last used row by scanning cells (may be slower but avoids Dimension overflow)
+                        try
+                        {
+                            rowCountTemp = worksheet.Cells
+                                .Where(c => c.Value != null && !string.IsNullOrEmpty(c.Value?.ToString()))
+                                .Select(c => c.Start.Row)
+                                .DefaultIfEmpty(0)
+                                .Max();
+                        }
+                        catch (Exception exScan)
+                        {
+                            result.Errors.Add("Excel file parsing failed while scanning cells: " + exScan.Message);
+                            return result;
+                        }
+                    }
+
+                    if (rowCountTemp <= 1)
+                    {
+                        result.Errors.Add("Excel file contains no data rows (only header or empty).");
+                        return result;
+                    }
+
+                    if (rowCountTemp > 200_000)
+                    {
+                        result.Errors.Add("Excel file is too large to process (rows: " + rowCountTemp + "). Please split the file into smaller parts.");
+                        return result;
+                    }
+
+                    result.TotalRows = rowCountTemp > 1 ? rowCountTemp - 1 : 0; // Exclude header
+                }
+                catch (OverflowException oe)
+                {
+                    result.Errors.Add($"Excel file parsing failed (overflow): {oe.Message}");
+                    return result;
+                }
+                catch (Exception exPkg)
+                {
+                    result.Errors.Add($"Excel file parsing failed: {exPkg.GetType().Name} - {exPkg.Message}");
+                    return result;
+                }
+
+                // Re-open package for row iteration
+                stream.Position = 0;
+                using var package2 = new OfficeOpenXml.ExcelPackage(stream);
+                var worksheet2 = package2.Workbook.Worksheets.First();
+                int rowCount = worksheet2.Dimension.Rows;
+
+                var existingStudents = await _userManager.GetUsersInRoleAsync("Student");
+                var existingSsnSet = new HashSet<string>(existingStudents.Select(s => s.SSN));
+                var existingIdSet = new HashSet<string>(existingStudents.Select(s => s.Id));
+
+                var newStudents = new List<ApplicationUser>();
+
+                for (int row = 2; row <= rowCount; row++)
+                {
+                    try
+                    {
+                        var idVal = worksheet2.Cells[row, 1].Value;
+                        var ssnVal = worksheet2.Cells[row, 2].Value;
+                        var nameVal = worksheet2.Cells[row, 3].Value;
+
+                        string id = idVal?.ToString()?.Trim();
+                        string ssn = ssnVal?.ToString()?.Trim();
+                        string name = nameVal?.ToString()?.Trim();
+
+                        if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(ssn) || string.IsNullOrEmpty(name))
+                        {
+                            result.Skipped++;
+                            result.Errors.Add($"Row {row}: Missing required data.");
+                            continue;
+                        }
+
+                        if (existingSsnSet.Contains(ssn) || existingIdSet.Contains(id))
+                        {
+                            result.Updated++; // Mark as updated/skipped for now
+                            continue;
+                        }
+
+                        var newStudent = new ApplicationUser
+                        {
+                            Id = id,
+                            UserName = id,
+                            SSN = ssn,
+                            Name = name,
+                            Email = $"{id}@std.teebaa.edu.eg",
+                            EmailConfirmed = true,
+                            IsActive = true
+                        };
+
+                        newStudents.Add(newStudent);
+                    }
+                    catch (Exception ex)
+                    {
+                        result.Skipped++;
+                        result.Errors.Add($"Row {row}: ({ex.GetType().Name}) {ex.Message}");
+                    }
+                }
+
+                if (newStudents.Any())
+                {
+                    foreach (var st in newStudents)
+                    {
+                        try
+                        {
+                            var createResult = await _userManager.CreateAsync(st, "Tb123456*");
+                            if (createResult.Succeeded)
+                            {
+                                await _userManager.AddToRoleAsync(st, "Student");
+                                result.Added++;
+                            }
+                            else
+                            {
+                                result.Skipped++;
+                                result.Errors.Add($"Failed to create user {st.Id}: {string.Join(", ", createResult.Errors.Select(e => e.Description))}");
+                            }
+                        }
+                        catch (Exception innerEx)
+                        {
+                            result.Skipped++;
+                            result.Errors.Add($"Exception on CreateAsync row ({innerEx.GetType().Name}): {innerEx.Message}");
+                        }
+                    }
+                }
+            }
+            catch (Exception toplevel)
+            {
+                result.Errors.Add($"Fatal Error parsing the Excel File ({toplevel.GetType().Name}): {toplevel.Message}");
+            }
+
+            return result;
         }
 
         // =====================

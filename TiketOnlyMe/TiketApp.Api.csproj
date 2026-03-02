@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Identity" Version="1.17.1" />
+    <PackageReference Include="EPPlus" Version="8.4.2" />
     <PackageReference Include="JWT" Version="11.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.4" />
@@ -21,7 +22,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.3" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
     <PackageReference Include="System.Text.Json" Version="10.0.3" />
   </ItemGroup>

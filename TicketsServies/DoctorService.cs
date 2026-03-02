@@ -28,11 +28,8 @@ namespace TicketsServies
 
         public async Task<DoctorStatsDto> GetDoctorStatsAsync(string doctorId)
         {
-            var cacheKey = $"doctor_stats_{doctorId}";
-
-            if (_cache.TryGetValue(cacheKey, out DoctorStatsDto? cachedStats))
-                return cachedStats!;
-
+            // For accurate doctor stats we always compute live from the DB to avoid stale counts.
+            // Cache was removed to ensure stats reflect every change immediately.
             var statusCounts = await _context.Set<Ticket>()
                 .Where(t => t.DoctorId == doctorId)
                 .GroupBy(t => t.Status)
@@ -54,14 +51,12 @@ namespace TicketsServies
                 TotalTickets = newCount + inProgressCount + closedCount
             };
 
-            _cache.Set(cacheKey, stats, TimeSpan.FromMinutes(5));
-
             return stats;
         }
 
         public async Task<IEnumerable<DoctorSubjectDto>> GetDoctorSubjectsAsync(string doctorId)
         {
-            var cacheKey = $"doctor_subjects_detail_{doctorId}";
+            var cacheKey = CacheKeys.DoctorSubjectsDetail(doctorId);
 
             if (_cache.TryGetValue(cacheKey, out IEnumerable<DoctorSubjectDto>? cachedSubjects))
                 return cachedSubjects!;
@@ -81,7 +76,8 @@ namespace TicketsServies
                 })
                 .ToListAsync();
 
-            _cache.Set(cacheKey, doctorSubjects, TimeSpan.FromMinutes(10));
+            // Subjects per doctor rarely change — cache for 24 hours and rely on invalidation on changes.
+            _cache.Set(cacheKey, doctorSubjects, TimeSpan.FromHours(24));
 
             return doctorSubjects;
         }

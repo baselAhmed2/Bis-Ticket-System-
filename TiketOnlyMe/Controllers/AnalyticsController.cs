@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TicketsServiesAbstraction.IServices;
+using Microsoft.EntityFrameworkCore;
+using TicketsDomain.Models;
 
 namespace TiketApp.Api.Controllers
 {
@@ -10,10 +12,12 @@ namespace TiketApp.Api.Controllers
     public class AnalyticsController : ControllerBase
     {
         private readonly IAnalyticsService _analyticsService;
+        private readonly DbContext _context;
 
-        public AnalyticsController(IAnalyticsService analyticsService)
+        public AnalyticsController(IAnalyticsService analyticsService, DbContext context)
         {
             _analyticsService = analyticsService;
+            _context = context;
         }
 
         [HttpGet("admin")]

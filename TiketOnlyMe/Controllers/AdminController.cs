@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 using TicketsServiesAbstraction.IServices;
 using TicketsShared.DTO.Admin;
 
@@ -23,6 +24,60 @@ namespace TiketApp.Api.Controllers
             _ticketService = ticketService;
             _doctorService = doctorService;
             _context = context;
+        }
+
+        // =====================
+        // Search tickets by Student Id (accessible to admins)
+        // =====================
+        [HttpGet("students/{studentId}/tickets")]
+        public async Task<IActionResult> GetTicketsByStudent(
+            string studentId,
+            [FromQuery] int pageIndex = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var program = GetCurrentProgram();
+
+            // Check student exists and program restriction for SubAdmin
+            var student = await _adminService.GetUserByIdAsync(studentId);
+            if (student == null) return NotFound(new { message = "Student not found" });
+            if (program != null && student.Program != program) return Forbid();
+
+            var query = _context.Set<TicketsDomain.Models.Ticket>()
+                .Include(t => t.Student)
+                .Include(t => t.Doctor)
+                .Include(t => t.Subject)
+                .Include(t => t.Messages).ThenInclude(m => m.Sender)
+                .Where(t => t.StudentId == studentId)
+                .OrderByDescending(t => t.CreatedAt);
+
+            var totalCount = await query.CountAsync();
+
+            var tickets = await query
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var dto = tickets.Select(t => new
+            {
+                id = t.Id,
+                title = t.Title,
+                body = t.Body,
+                level = t.Level,
+                term = t.Term,
+                groupNumber = t.GroupNumber,
+                status = t.Status,
+                isHighPriority = t.IsHighPriority,
+                createdAt = t.CreatedAt,
+                program = t.Program,
+                studentId = t.StudentId,
+                studentName = t.Student?.Name ?? "",
+                doctorId = t.DoctorId,
+                doctorName = t.Doctor?.Name ?? "",
+                subjectId = t.SubjectId,
+                subjectName = t.Subject?.Name ?? "",
+            });
+
+            return Ok(new { data = dto, totalCount, pageIndex, pageSize });
         }
 
         /// <summary>
@@ -107,6 +162,16 @@ namespace TiketApp.Api.Controllers
             return Ok(new { message = "User deleted successfully" });
         }
 
+        [HttpPost("students/bulk-upload")]
+        public async Task<IActionResult> BulkUploadStudents(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest(new { message = "No file uploaded." });
+
+            var result = await _adminService.BulkUploadStudentsAsync(file);
+            return Ok(result);
+        }
+
         // =====================
         // Doctor Subject Management
         // =====================
@@ -128,7 +193,7 @@ namespace TiketApp.Api.Controllers
             return Ok(subjects);
         }
 
-        [HttpGet("subjects")]
+        [HttpGet("subjects")] 
         public async Task<IActionResult> GetAllSubjects()
         {
             var program = GetCurrentProgram();
@@ -329,12 +394,9 @@ namespace TiketApp.Api.Controllers
         /// SuperAdmin only: ينهي الترم — يحذف كل التذاكر ويصفر عدادات الداش بورد
         /// </summary>
         [HttpPost("end-term")]
+        [Authorize(Roles = "SuperAdmin")]
         public async Task<IActionResult> EndTerm()
         {
-            var role = User.FindFirstValue(ClaimTypes.Role);
-            if (role != "SuperAdmin")
-                return Forbid();
-
             var deletedCount = await _adminService.DeleteAllTicketsAsync();
             return Ok(new { message = "Term ended successfully. All tickets have been cleared.", deletedCount });
         }

@@ -10,7 +10,7 @@ namespace TicketsServiesAbstraction.IServices
     public interface IAnalyticsService
     {
         Task<AdminAnalyticsDto> GetAdminAnalyticsAsync(int? periodInDays = null);
-        Task<List<DoctorTicketCountDto>> GetDoctorsByTicketCountAsync(int topCount = 10, int? level = null);
-        Task<List<SubjectTicketCountDto>> GetSubjectsByTicketCountAsync(int topCount = 10, int? level = null);
+        Task<List<DoctorTicketCountDto>> GetDoctorsByTicketCountAsync(int topCount = 10, int? level = null, int? periodInDays = null);
+        Task<List<SubjectTicketCountDto>> GetSubjectsByTicketCountAsync(int topCount = 10, int? level = null, int? periodInDays = null);
     }
 }

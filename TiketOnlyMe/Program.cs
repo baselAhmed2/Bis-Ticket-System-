@@ -17,10 +17,16 @@ namespace TiketOnlyMe
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            //// ✅ Limit request body size (1MB)
+            //// ✅ Limit request body size (10MB)
             builder.WebHost.ConfigureKestrel(options =>
             {
-                options.Limits.MaxRequestBodySize = 1_048_576; // 1MB
+                options.Limits.MaxRequestBodySize = 10_485_760; // 10MB
+            });
+
+            // ✅ Form options limit (10MB)
+            builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+            {
+                options.MultipartBodyLengthLimit = 10_485_760; // 10 MB max
             });
 
             // Controllers + Swagger + Model Validation

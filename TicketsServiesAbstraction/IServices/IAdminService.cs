@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using TicketsShared.DTO.Admin;
 using TicketsShared.DTO.Common;
 using TicketsShared.DTO.Tickets;
+using Microsoft.AspNetCore.Http;
 
 namespace TicketsServiesAbstraction.IServices
 {
@@ -43,5 +44,8 @@ namespace TicketsServiesAbstraction.IServices
         /// SuperAdmin only: ينهي الترم — يحذف كل التذاكر ويصفر العدادات
         /// </summary>
         Task<int> DeleteAllTicketsAsync();
+
+        // Bulk upload
+        Task<BulkStudentUploadResultDto> BulkUploadStudentsAsync(IFormFile file);
     }
 }
